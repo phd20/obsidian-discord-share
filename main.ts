@@ -1,4 +1,6 @@
 import { EmbedBuilder, WebhookClient } from "discord.js";
+import DiscordManager from "DiscordManager";
+import LocalImageModal from "LocalImageModal";
 import {
 	App,
 	Editor,
@@ -8,23 +10,22 @@ import {
 	Plugin,
 	PluginSettingTab,
 	Setting,
+	Workspace,
 } from "obsidian";
+import SettingsTab, { DEFAULT_VALUES, INITIAL_SETTINGS, ISettingsOptions, PartialSettings } from "Settings";
 
 // Remember to rename these classes and interfaces!
 
-interface MyPluginSettings {
-	mySetting: string;
-}
-
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: "default",
-};
-
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class DiscordSharePlugin extends Plugin {
+	settings: ISettingsOptions;
+	discordManager: DiscordManager;
+	workspace: Workspace;
 
 	async onload() {
-		await this.loadSettings();
+		this.settings = Object.assign({}, INITIAL_SETTINGS, await this.loadData());
+		this.discordManager = new DiscordManager(this);
+		this.addSettingTab(new SettingsTab(this));
+		this.workspace = this.app.workspace;
 
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon(
@@ -42,27 +43,18 @@ export default class MyPlugin extends Plugin {
 		const statusBarItemEl = this.addStatusBarItem();
 		statusBarItemEl.setText("Status Bar Text");
 
-		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
-			id: "send-to-discord",
-			name: "Send to Discord",
-			callback: () => {
-				const webhookClient = new WebhookClient({
-					url: this.settings.mySetting,
-				});
-
-				const embed = new EmbedBuilder()
-					.setTitle("Some Title")
-					.setColor(0x00ffff);
-
-				webhookClient.send({
-					content: "Hello world",
-					username: "Obsidian",
-					avatarURL: "https://avatars.githubusercontent.com/u/65011256",
-					embeds: [embed],
-				});
-			},
+			id: "discord:send-attachment",
+			name: "Send Attachment to Discord",
+			checkCallback: (checking) => {
+				const file = this.workspace.getActiveFile()!;
+				if (checking) {
+					return !!file;
+				}
+				new LocalImageModal(this, file).open();
+			  }
 		});
+
 		// This adds an editor command that can perform some operation on the current editor instance
 		this.addCommand({
 			id: "sample-editor-command",
@@ -93,9 +85,6 @@ export default class MyPlugin extends Plugin {
 			},
 		});
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
 		this.registerDomEvent(document, "click", (evt: MouseEvent) => {
@@ -110,17 +99,10 @@ export default class MyPlugin extends Plugin {
 
 	onunload() {}
 
-	async loadSettings() {
-		this.settings = Object.assign(
-			{},
-			DEFAULT_SETTINGS,
-			await this.loadData()
-		);
-	}
-
-	async saveSettings() {
-		await this.saveData(this.settings);
-	}
+	// Helper to get setting value (or the default setting value if not set)
+	getSettingValue<K extends keyof ISettingsOptions>(key: K): PartialSettings[K] {
+		return this.settings[key] ?? DEFAULT_VALUES[key];
+	  }
 }
 
 class SampleModal extends Modal {
@@ -136,38 +118,5 @@ class SampleModal extends Modal {
 	onClose() {
 		const { contentEl } = this;
 		contentEl.empty();
-	}
-}
-
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	display(): void {
-		const { containerEl } = this;
-
-		containerEl.empty();
-
-		containerEl.createEl("h2", {
-			text: "Settings for the Discord Share plugin.",
-		});
-
-		new Setting(containerEl)
-			.setName("Discord Webhook URL")
-			.setDesc("Get this value from Discord")
-			.addText((text) =>
-				text
-					.setPlaceholder("Enter your webhook URL")
-					.setValue(this.plugin.settings.mySetting)
-					.onChange(async (value) => {
-						console.log("Secret: " + value);
-						this.plugin.settings.mySetting = value;
-						await this.plugin.saveSettings();
-					})
-			);
 	}
 }

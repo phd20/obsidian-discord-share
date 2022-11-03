@@ -12,10 +12,12 @@
 	"author": "",
 	"license": "MIT",
 	"devDependencies": {
+		"@types/common-tags": "^1.8.1",
 		"@types/node": "^16.11.6",
 		"@typescript-eslint/eslint-plugin": "5.29.0",
 		"@typescript-eslint/parser": "5.29.0",
 		"builtin-modules": "3.3.0",
+		"common-tags": "^1.8.2",
 		"discord.js": "^14.6.0",
 		"esbuild": "0.14.47",
 		"obsidian": "latest",
