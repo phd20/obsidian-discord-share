@@ -36,7 +36,7 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 		this.vault = plugin.app.vault;
 		this.discordManager = plugin.discordManager;
 
-		this.containerEl.addClass("banner-local-image-modal");
+		this.containerEl.addClass("attachment-local-image-modal");
 		this.limit = this.plugin.getSettingValue("localSuggestionsLimit") || 10;
 		this.setPlaceholder("Pick an image to send to Discord.");
 	}
@@ -77,7 +77,7 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 		const { showPreviewInLocalModal } = this.plugin.settings;
 		if (showPreviewInLocalModal) {
 			const content = el.innerHTML;
-			el.addClass("banner-suggestion-item");
+			el.addClass("attachment-suggestion-item");
 			el.innerHTML = html`
 				<p class="suggestion-text">${content}</p>
 				<div class="suggestion-image-wrapper">

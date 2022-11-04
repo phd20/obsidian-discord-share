@@ -137,13 +137,13 @@ export default class SettingsTab extends PluginSettingTab {
 
 	private createHeader(text: string, desc: string = "") {
 		const header = this.containerEl.createDiv({
-			cls: "setting-item setting-item-heading banner-setting-header",
+			cls: "setting-item setting-item-heading discord-share-setting-header",
 		});
-		header.createEl("p", { text, cls: "banner-setting-header-title" });
+		header.createEl("p", { text, cls: "discord-share-setting-header-title" });
 		if (desc) {
 			header.createEl("p", {
 				text: desc,
-				cls: "banner-setting-header-description",
+				cls: "discord-share-setting-header-description",
 			});
 		}
 	}

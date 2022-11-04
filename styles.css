@@ -1,8 +1,53 @@
-/*
+/* Local Image Modal */
+.attachment-local-image-modal .attachment-suggestion-item {
+    padding: 6px 10px;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.attachment-local-image-modal .suggestion-text {
+    height: 0;
+    margin: 0;
+    padding-left: 10px;
+}
 
-If your plugin does not need CSS, delete this file.
+.attachment-local-image-modal .suggestion-image-wrapper {
+    position: relative;
+    height: 200px;
+    width: 100%;
+    margin: 6px 0;
+    overflow: hidden;
+}
 
-*/
+.attachment-local-image-modal .suggestion-image-wrapper img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    object-fit: cover;
+}
+
+/* Settings */
+.discord-share-settings .discord-share-setting-header {
+    display: block;
+    padding: 6px 0;
+}
+
+.discord-share-settings .discord-share-setting-header p {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.discord-share-settings .discord-share-setting-header .discord-share-setting-header-title {
+    font-size: 1.3em;
+}
+
+.discord-share-settings .discord-share-setting-header .discord-share-setting-header-description {
+    margin-top: 2px;
+    font-size: 0.7em;
+    color: var(--text-muted);
+    line-height: 18px;
+}
+
+.discord-share-settings .setting-item-control {
+    gap: 8px;
+}
