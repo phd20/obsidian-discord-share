@@ -1,5 +1,8 @@
 # Discord Share Plugin
 
+> **Warning**
+> This plugin should be considered experimental.
+
 This plugin allows you to share your Obsidian Vault content to Discord using [discord.js](https://discord.js.org/).
 
 ## Setup
