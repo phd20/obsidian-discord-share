@@ -1,6 +1,6 @@
-import { EmbedBuilder, WebhookClient } from "discord.js";
+import { WebhookClient } from "discord.js";
 import DiscordSharePlugin from "main";
-import { MetadataCache, Vault } from "obsidian";
+import { MetadataCache, Notice, Vault } from "obsidian";
 
 export default class DiscordManager {
 	plugin: DiscordSharePlugin;
@@ -13,25 +13,35 @@ export default class DiscordManager {
 		this.vault = plugin.app.vault;
 	}
 
-	async sendAttachment(filePath: string) {
+	async sendAttachment(filePath: string, fileName: string) {
+		const RequestEntityTooLargeErrorCode = "Request entity too large";
 		const webhookClient = new WebhookClient({
-			url: this.plugin.getSettingValue('discordWebhookURL')!
+			url: this.plugin.getSettingValue("discordWebhookURL")!,
 		});
 
-		// const embed = new EmbedBuilder()
-		// 	.setTitle("Some Title")
-		// 	.setColor(0x00ffff);
-
-		webhookClient.send({
-			content: "Test Message",
-			files: [
-				{
-					attachment: filePath,
-					name: "sotanax.jpg",
-				},
-			],
-			username: "Obsidian",
-			avatarURL: "https://avatars.githubusercontent.com/u/65011256",
-		});
+		webhookClient
+			.send({
+				files: [
+					{
+						attachment: filePath,
+						name: fileName,
+					},
+				],
+				username: "Obsidian Share",
+				avatarURL: "https://avatars.githubusercontent.com/u/65011256",
+			})
+			.then((data) => {
+				new Notice("Successfully sent to Discord!");
+			})
+			.catch((error) => {
+				if (error && error.message === RequestEntityTooLargeErrorCode) {
+					new Notice(
+						`Failed to Send to Discord. Attachments must be smaller than 8MB.`
+					);
+				} else {
+					new Notice(`Failed to Send to Discord. ${error.message}.`);
+				}
+				console.log(error);
+			});
 	}
 }

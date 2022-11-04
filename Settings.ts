@@ -36,7 +36,6 @@ export default class SettingsTab extends PluginSettingTab {
 	async saveSettings(changed: PartialSettings) {
 		this.plugin.settings = { ...this.plugin.settings, ...changed };
 		await this.plugin.saveData(this.plugin.settings);
-		console.log("Saved the settings!");
 	}
 
 	display() {
@@ -51,7 +50,8 @@ export default class SettingsTab extends PluginSettingTab {
 
 		this.createHeader("Discord Share", "Share vault contents to Discord.");
 
-		// Banner height
+		this.createHeader("Discord", "Connection settings for Discord.");
+
 		new Setting(containerEl)
 			.setName("Discord Webhook URL")
 			.setDesc("Get this value from Discord")
@@ -64,7 +64,35 @@ export default class SettingsTab extends PluginSettingTab {
 					)
 			);
 
-		// Show preview images in local image modal
+		this.createHeader("Vault Settings", "Settings related to your vault.");
+
+		new Setting(containerEl)
+			.setName("Attachments folder")
+			.setDesc(
+				createFragment((frag) => {
+					frag.appendText(
+						"Select a folder to exclusively search for attachment files in."
+					);
+					frag.createEl("br");
+					frag.appendText(
+						"If empty, it will search the entire vault for image files"
+					);
+				})
+			)
+			.addText((text) =>
+				text
+					.setValue(attachmentsFolder)
+					.setPlaceholder(DEFAULT_VALUES.attachmentsFolder!)
+					.onChange(async (val) =>
+						this.saveSettings({ attachmentsFolder: val })
+					)
+			);
+
+		this.createHeader(
+			"Local Image Search",
+			"Settings for the local image search modal."
+		);
+
 		new Setting(containerEl)
 			.setName("Show preview images")
 			.setDesc(
@@ -78,7 +106,6 @@ export default class SettingsTab extends PluginSettingTab {
 					)
 			);
 
-		// Limit of suggestions in local image modal
 		new Setting(containerEl)
 			.setName("Suggestions limit")
 			.setDesc(
@@ -106,29 +133,6 @@ export default class SettingsTab extends PluginSettingTab {
 					})
 				);
 			});
-
-		// Search in a specific folder for banners
-		new Setting(containerEl)
-			.setName("Attachments folder")
-			.setDesc(
-				createFragment((frag) => {
-					frag.appendText(
-						"Select a folder to exclusively search for attachment files in."
-					);
-					frag.createEl("br");
-					frag.appendText(
-						"If empty, it will search the entire vault for image files"
-					);
-				})
-			)
-			.addText((text) =>
-				text
-					.setValue(attachmentsFolder)
-					.setPlaceholder(DEFAULT_VALUES.attachmentsFolder!)
-					.onChange(async (val) =>
-						this.saveSettings({ attachmentsFolder: val })
-					)
-			);
 	}
 
 	private createHeader(text: string, desc: string = "") {
