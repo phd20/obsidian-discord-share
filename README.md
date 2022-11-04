@@ -21,3 +21,5 @@ You can send an attachment to Discord using this plugin. There are two ways to a
 2. Open the command palette and search for **Send Attachment to Discord**. Click on it or press `return` on your keyboard.
 
 This opens a modal to search your local image files. Search for the file you want and click on it or press `return` on your keyboard.
+
+Hat tip to the [obsidian-banners](https://github.com/noatpad/obsidian-banners) plugin for inspiration on some of the features.
