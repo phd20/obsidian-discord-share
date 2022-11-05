@@ -6,7 +6,7 @@
 This plugin allows you to share your Obsidian Vault content to Discord using [discord.js](https://discord.js.org/).
 
 ## Setup
-1. Add this plugin to your Obsidian vault.
+1. Add this plugin to your Obsidian vault (I recommend using [BRAT](https://github.com/TfTHacker/obsidian42-brat)).
 2. Enable it.
 3. Get a Webhook URL from Discord. See [this guide](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) for more on how to do this.
 4. Paste your Discord Webhook URL into the `Discord Webhook URL` setting for this plugin. **You must do this or the plugin will not work.**
@@ -25,4 +25,4 @@ You can send an attachment to Discord using this plugin. There are two ways to a
 
 This opens a modal to search your local image files. Search for the file you want and click on it or press `return` on your keyboard.
 
-Hat tip to the [obsidian-banners](https://github.com/noatpad/obsidian-banners) plugin for inspiration on some of the features.
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C8XS4N)
