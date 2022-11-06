@@ -1,11 +1,14 @@
-import DiscordSharePlugin from "main";
+import DiscordSharePlugin from "src/main";
 import { PluginSettingTab, Setting } from "obsidian";
+import { DiscordWebhookUsername } from "./discord/constants";
 
 export interface ISettingsOptions {
 	discordWebhookURL: string;
 	attachmentsFolder: string;
 	localSuggestionsLimit: number;
 	showPreviewInLocalModal: boolean;
+	customBotUsername: string;
+	customBotAvatarURL: string;
 }
 
 export type PartialSettings = Partial<ISettingsOptions>;
@@ -15,6 +18,8 @@ export const INITIAL_SETTINGS: ISettingsOptions = {
 	attachmentsFolder: "",
 	localSuggestionsLimit: 10,
 	showPreviewInLocalModal: true,
+	customBotUsername: "",
+	customBotAvatarURL: "",
 };
 
 export const DEFAULT_VALUES: PartialSettings = {
@@ -22,6 +27,8 @@ export const DEFAULT_VALUES: PartialSettings = {
 	attachmentsFolder: "/",
 	localSuggestionsLimit: 10,
 	showPreviewInLocalModal: true,
+	customBotUsername: "",
+	customBotAvatarURL: "",
 };
 
 export default class SettingsTab extends PluginSettingTab {
@@ -40,11 +47,13 @@ export default class SettingsTab extends PluginSettingTab {
 
 	display() {
 		const { containerEl } = this;
-		let {
+		const {
 			discordWebhookURL,
 			attachmentsFolder,
 			localSuggestionsLimit,
 			showPreviewInLocalModal,
+			customBotUsername,
+			customBotAvatarURL,
 		} = this.plugin.settings;
 		containerEl.empty();
 
@@ -61,6 +70,34 @@ export default class SettingsTab extends PluginSettingTab {
 					.setValue(discordWebhookURL)
 					.onChange(async (val) =>
 						this.saveSettings({ discordWebhookURL: val })
+					)
+			);
+
+		new Setting(containerEl)
+			.setName("Custom Discord Bot Username")
+			.setDesc(
+				`The username of the bot that will share to Discord. The default is "${DiscordWebhookUsername}".`
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter a custom username for this Discord bot.")
+					.setValue(customBotUsername)
+					.onChange(async (val) =>
+						this.saveSettings({ customBotUsername: val })
+					)
+			);
+
+			new Setting(containerEl)
+			.setName("Custom Discord Bot Avatar")
+			.setDesc(
+				`The url of a custom avatar to use with this Discord bot. If empty, the Obsidian logo will be used.`
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter the url of a custom avatar to use with this Discord bot.")
+					.setValue(customBotAvatarURL)
+					.onChange(async (val) =>
+						this.saveSettings({ customBotAvatarURL: val })
 					)
 			);
 
@@ -82,7 +119,7 @@ export default class SettingsTab extends PluginSettingTab {
 			.addText((text) =>
 				text
 					.setValue(attachmentsFolder)
-					.setPlaceholder(DEFAULT_VALUES.attachmentsFolder!)
+					.setPlaceholder(DEFAULT_VALUES.attachmentsFolder || "")
 					.onChange(async (val) =>
 						this.saveSettings({ attachmentsFolder: val })
 					)
@@ -135,11 +172,14 @@ export default class SettingsTab extends PluginSettingTab {
 			});
 	}
 
-	private createHeader(text: string, desc: string = "") {
+	private createHeader(text: string, desc = "") {
 		const header = this.containerEl.createDiv({
 			cls: "setting-item setting-item-heading discord-share-setting-header",
 		});
-		header.createEl("p", { text, cls: "discord-share-setting-header-title" });
+		header.createEl("p", {
+			text,
+			cls: "discord-share-setting-header-title",
+		});
 		if (desc) {
 			header.createEl("p", {
 				text: desc,
