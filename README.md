@@ -26,6 +26,9 @@ You have two options for installing the plugin.
 
 ## Features
 
+![discord-share](https://user-images.githubusercontent.com/33853403/200182343-fb077076-2ef4-400b-b651-5f430ff89063.gif)
+
+
 ## Share Attachment to Discord
 
 Open the command palette and search for **Share Attachment to Discord**. Click on it or press `return` on your keyboard. This opens a modal to search your local image files. Search for the file you want and click on it or press `return` on your keyboard.
