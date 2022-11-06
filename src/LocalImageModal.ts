@@ -1,6 +1,6 @@
 import { html } from "common-tags";
-import DiscordManager from "DiscordManager";
-import DiscordSharePlugin from "main";
+import DiscordManager from "src/discord/DiscordManager";
+import DiscordSharePlugin from "src/main";
 import {
 	FuzzyMatch,
 	FuzzySuggestModal,
@@ -9,7 +9,7 @@ import {
 	TFolder,
 	Vault,
 } from "obsidian";
-import { DEFAULT_VALUES } from "Settings";
+import { DEFAULT_VALUES } from "src/Settings";
 
 const IMAGE_FORMATS = [
 	"apng",
@@ -93,8 +93,12 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 			resourcePath,
 			image.extension
 		);
-		console.log(filePath);
-		await this.discordManager.sendAttachment(filePath, image.name);
+		if (filePath) {
+			await this.discordManager.shareAttachment(filePath, image.name);
+		} else {
+			new Notice("Invalid file path.")
+			console.log(`Invalid file path: ${filePath}`);
+		}
 	}
 
 	private getImagesInFolder(folder: TFolder): TFile[] {
@@ -115,12 +119,14 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 
 	// This is dumb but I wanted to get it working ASAP. Need to revisit at some point.
 	private convertResourcePath(resourcePath: string, fileExtension: string) {
-		let filePath = resourcePath.split("local").pop()!;
-		let filePath2 = filePath?.substring(
-			0,
-			filePath?.lastIndexOf(fileExtension) + fileExtension.length
-		);
-
-		return decodeURIComponent(filePath2);
+		const resourcePathSplit = resourcePath.split("local").pop();
+		if (resourcePathSplit !== undefined) {
+			const filePath = resourcePathSplit.substring(
+				0,
+				resourcePathSplit.lastIndexOf(fileExtension) +
+					fileExtension.length
+			);
+			return decodeURIComponent(filePath);
+		}
 	}
 }
