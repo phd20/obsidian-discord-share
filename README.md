@@ -15,7 +15,7 @@ This plugin allows you to share your Obsidian Vault content to Discord using [di
 You have two options for installing the plugin.
 
 1. Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/obsidian-discord-share/`.
-2. Use the Obsidian [BRAT](https://github.com/TfTHacker/obsidian42-brat (recommended).
+2. Use the Obsidian [BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin (recommended).
 
 ### Optional Settings
 - You can customize the username that appears for the Discord bot by updating the `Custom Discord Bot Username` setting.
