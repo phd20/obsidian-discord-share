@@ -57,13 +57,14 @@ export default class DiscordManager {
 			url: this.plugin.getSettingValue("discordWebhookURL") || "",
 		});
 
-		const embed = this.discordHelper.buildEmbedFromFile(file);
-		if (embed instanceof EmbedBuilder) {
+		const embedBuild = this.discordHelper.buildEmbedFromFile(file);
+		if (embedBuild && embedBuild.embed instanceof EmbedBuilder) {
 			webhookClient
 				.send({
 					username: this.getDiscordBotUsername(),
 					avatarURL: this.getDiscordBotAvatarURL(),
-					embeds: [embed],
+					embeds: [embedBuild.embed],
+					files: embedBuild.attachment ? [embedBuild.attachment] : [],
 				})
 				.then((data) => {
 					new Notice(`Successfully shared embed to Discord!`);

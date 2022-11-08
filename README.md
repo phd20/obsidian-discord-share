@@ -54,7 +54,7 @@ This feature parses YAML frontmatter for the current note and shares it to Disco
 ### Example Frontmatter
 
 ```
-ods-color: '#8D59D7'
+ods-color: '#8D59D7' # If provided, this will override the `Embed Color` setting in the plugin's settings tab. 
 ods-title: Discord Share
 ods-url: 'https://github.com/phd20/obsidian-discord-share'
 ods-author:
@@ -64,7 +64,7 @@ ods-author:
 ods-description: >-
   This plugin allows you to share your Obsidian Vault content to Discord
 ods-thumbnail-url: 'https://avatars.githubusercontent.com/u/65011256'
-ods-fields:
+ods-fields: # You can add or remove fields. 
   - name: Version
     value: 1.2.0
     inline: true
@@ -74,7 +74,7 @@ ods-fields:
   - name: Awesome?
     value: Yes
     inline: true
-ods-image: 'https://user-images.githubusercontent.com/33853403/200464422-a66e62ee-08c9-4e75-bdc2-9bd585cef2ab.png'
+ods-image: https://user-images.githubusercontent.com/33853403/200464422-a66e62ee-08c9-4e75-bdc2-9bd585cef2ab.png # This can be a URL or a link to an image in your vault: [[image.png]]. NOTE: embeds will not properly attach the image from your vault if it has spaces in the name. Example: [[image name.png]]
 ods-footer:
   text: Build using discord.js
   iconURL: 'https://avatars.githubusercontent.com/u/26492485'
