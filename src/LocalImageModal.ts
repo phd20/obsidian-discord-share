@@ -2,6 +2,7 @@ import { html } from "common-tags";
 import DiscordManager from "src/discord/DiscordManager";
 import DiscordSharePlugin from "src/main";
 import {
+	FileSystemAdapter,
 	FuzzyMatch,
 	FuzzySuggestModal,
 	Notice,
@@ -29,12 +30,14 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 	vault: Vault;
 	targetFile: TFile;
 	discordManager: DiscordManager;
+	adapter: FileSystemAdapter;
 
 	constructor(plugin: DiscordSharePlugin) {
 		super(plugin.app);
 		this.plugin = plugin;
 		this.vault = plugin.app.vault;
 		this.discordManager = plugin.discordManager;
+		this.adapter = plugin.app.vault.adapter as FileSystemAdapter;
 
 		this.containerEl.addClass("attachment-local-image-modal");
 		this.limit = this.plugin.getSettingValue("localSuggestionsLimit") || 10;
@@ -88,16 +91,12 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 	}
 
 	async onChooseItem(image: TFile) {
-		const resourcePath = this.vault.getResourcePath(image);
-		const filePath = this.convertResourcePath(
-			resourcePath,
-			image.extension
-		);
-		if (filePath) {
-			await this.discordManager.shareAttachment(filePath, image.name);
+		const path = this.adapter.getFullPath(image.path);
+		if (path) {
+			await this.discordManager.shareAttachment(path, image.name);
 		} else {
 			new Notice("Invalid file path.")
-			console.log(`Invalid file path: ${filePath}`);
+			console.log(`Invalid file path: ${path}`);
 		}
 	}
 
@@ -115,18 +114,5 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 			}
 		});
 		return files;
-	}
-
-	// This is dumb but I wanted to get it working ASAP. Need to revisit at some point.
-	private convertResourcePath(resourcePath: string, fileExtension: string) {
-		const resourcePathSplit = resourcePath.split("local").pop();
-		if (resourcePathSplit !== undefined) {
-			const filePath = resourcePathSplit.substring(
-				0,
-				resourcePathSplit.lastIndexOf(fileExtension) +
-					fileExtension.length
-			);
-			return decodeURIComponent(filePath);
-		}
 	}
 }
