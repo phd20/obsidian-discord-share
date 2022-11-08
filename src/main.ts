@@ -50,7 +50,6 @@ export default class DiscordSharePlugin extends Plugin {
 					return !!file && !!discordWebhookURLSet;
 				}
 				if (file instanceof TFile) {
-					// this.discordManager.shareEmbed(file);
 					this.discordManager.shareEmbed(file);
 				} else {
 					new Notice("No active file found.");
