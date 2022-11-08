@@ -1,7 +1,4 @@
-import {
-	EmbedBuilder,
-	WebhookClient,
-} from "discord.js";
+import { EmbedBuilder, WebhookClient } from "discord.js";
 import DiscordSharePlugin from "src/main";
 import { MetadataCache, Notice, TFile, Vault } from "obsidian";
 import { DiscordWebhookAvatarURL, DiscordWebhookUsername } from "./constants";
@@ -55,60 +52,6 @@ export default class DiscordManager {
 			});
 	}
 
-	public async shareEmbedTest() {
-		const webhookClient = new WebhookClient({
-			url: this.plugin.getSettingValue("discordWebhookURL") || "",
-		});
-
-		const embed = new EmbedBuilder()
-			.setColor(0x0099ff)
-			.setTitle("Some title")
-			.setURL("https://discord.js.org/")
-			.setAuthor({
-				name: "Some name",
-				iconURL: "https://i.imgur.com/AfFp7pu.png",
-				url: "https://discord.js.org",
-			})
-			.setDescription(
-				"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-			)
-			.setThumbnail("https://i.imgur.com/AfFp7pu.png")
-			.addFields(
-				{
-					name: "Regular field title",
-					value: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-				},
-				{ name: "\u200B", value: "\u200B" },
-				{
-					name: "Inline field title",
-					value: "Some value here",
-					inline: true,
-				},
-				{
-					name: "Inline field title",
-					value: "Some value here",
-					inline: true,
-				}
-			)
-			.addFields({
-				name: "Inline field title",
-				value: "Some value here",
-				inline: true,
-			})
-			.setImage("https://i.imgur.com/AfFp7pu.png")
-			.setTimestamp()
-			.setFooter({
-				text: "Some footer text here",
-				iconURL: "https://i.imgur.com/AfFp7pu.png",
-			});
-
-		webhookClient.send({
-			username: this.getDiscordBotUsername(),
-			avatarURL: this.getDiscordBotAvatarURL(),
-			embeds: [embed],
-		});
-	}
-
 	public async shareEmbed(file: TFile) {
 		const webhookClient = new WebhookClient({
 			url: this.plugin.getSettingValue("discordWebhookURL") || "",
@@ -122,7 +65,7 @@ export default class DiscordManager {
 				embeds: [embed],
 			});
 		} else {
-			console.log("Failed to create embed.")
+			console.log("Failed to create embed.");
 		}
 	}
 

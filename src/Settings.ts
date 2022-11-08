@@ -1,5 +1,5 @@
 import DiscordSharePlugin from "src/main";
-import { ColorComponent, PluginSettingTab, Setting } from "obsidian";
+import { PluginSettingTab, Setting } from "obsidian";
 import { DiscordWebhookUsername } from "./discord/constants";
 
 export interface ISettingsOptions {

@@ -40,19 +40,6 @@ export default class DiscordSharePlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: "discord:share-embed-test",
-			name: "Share Embed to Discord Test",
-			checkCallback: (checking) => {
-				const discordWebhookURLSet =
-					this.getSettingValue("discordWebhookURL");
-				if (checking) {
-					return !!discordWebhookURLSet;
-				}
-				this.discordManager.shareEmbedTest();
-			},
-		});
-
-		this.addCommand({
 			id: "discord:share-embed",
 			name: "Share Embed to Discord",
 			checkCallback: (checking) => {

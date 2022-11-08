@@ -1,9 +1,10 @@
 # Discord Share Plugin
 
-> **Warning**
-> This plugin should be considered experimental.
+![Obsidian Discord](https://user-images.githubusercontent.com/33853403/200464422-a66e62ee-08c9-4e75-bdc2-9bd585cef2ab.png)
 
 This plugin allows you to share your Obsidian Vault content to Discord using [discord.js](https://discord.js.org/).
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C8XS4N)
 
 ## Setup
 1. [Install the Plugin](#install-the-plugin)
@@ -23,18 +24,62 @@ You have two options for installing the plugin.
 - By default, the plugin will search all files for attachments. You can choose which folder to look for attachments in by updating the `Attachments folder` setting. If you set this, the plugin will only search that folder and all folders within it.
 - You can turn on/off image previews in the local image search by adjusting the `Show preview images` setting.
 - You can change the number of suggestions to show in the local image search by changing the `Suggestions limit` setting.
+- You can customize the default embed color by setting `Embed Color`. If a note specifies an embed color, it will override this setting.
 
 ## Features
+
+- [Discord Share Plugin](#discord-share-plugin)
+  - [Setup](#setup)
+    - [Install the Plugin](#install-the-plugin)
+    - [Optional Settings](#optional-settings)
+  - [Features](#features)
+  - [Share Attachment to Discord](#share-attachment-to-discord)
+  - [Share Embed to Discord](#share-embed-to-discord)
+    - [Example Frontmatter](#example-frontmatter)
+  - [Share Note Title to Discord](#share-note-title-to-discord)
 
 ![discord-share](https://user-images.githubusercontent.com/33853403/200182343-fb077076-2ef4-400b-b651-5f430ff89063.gif)
 
 
-## Share Attachment to Discord
+## [Share Attachment to Discord](#share-attachment-to-discord)
 
 Open the command palette and search for **Share Attachment to Discord**. Click on it or press `return` on your keyboard. This opens a modal to search your local image files. Search for the file you want and click on it or press `return` on your keyboard.
 
-## Share Note Title to Discord
+## [Share Embed to Discord](#share-embed-to-discord)
+
+Open the command palette and search for **Share Embed to Discord**. Click on it or press `return` on your keyboard. **This option will not show in the menu if you don't have a note open.**
+
+This feature parses YAML frontmatter for the current note and shares it to Discord in a formatted embed. It's a great way to share prepared information with images and links.
+
+### Example Frontmatter
+
+```
+ods-color: '#8D59D7'
+ods-title: Discord Share
+ods-url: 'https://github.com/phd20/obsidian-discord-share'
+ods-author:
+  name: PhD20
+  iconURL: 'https://avatars.githubusercontent.com/u/33853403'
+  url: 'https://github.com/phd20'
+ods-description: >-
+  This plugin allows you to share your Obsidian Vault content to Discord
+ods-thumbnail-url: 'https://avatars.githubusercontent.com/u/65011256'
+ods-fields:
+  - name: Version
+    value: 1.2.0
+    inline: true
+  - name: Install
+    value: Ready
+    inline: true
+  - name: Awesome?
+    value: Yes
+    inline: true
+ods-image: 'https://user-images.githubusercontent.com/33853403/200464422-a66e62ee-08c9-4e75-bdc2-9bd585cef2ab.png'
+ods-footer:
+  text: Build using discord.js
+  iconURL: 'https://avatars.githubusercontent.com/u/26492485'
+```
+
+## [Share Note Title to Discord](#share-note-title-to-discord)
 
 Open the command palette and search for **Share Note Title to Discord**. Click on it or press `return` on your keyboard. **This option will not show in the menu if you don't have a note open.**
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C8XS4N)
