@@ -1,4 +1,7 @@
-## 1.0.2
+## 1.1.1
+- Fixes an issue with filepaths for attachments on Windows
+
+## 1.1.0
 - Requires `DiscordWebhookURL` to be set to show command(s)
 - Adds the `Share Note Title to Discord` command
 - Adds settings for `Custom Discord Bot Username` and `Custom Discord Bot Avatar`
