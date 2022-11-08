@@ -59,11 +59,21 @@ export default class DiscordManager {
 
 		const embed = this.discordHelper.buildEmbedFromFile(file);
 		if (embed instanceof EmbedBuilder) {
-			webhookClient.send({
-				username: this.getDiscordBotUsername(),
-				avatarURL: this.getDiscordBotAvatarURL(),
-				embeds: [embed],
-			});
+			webhookClient
+				.send({
+					username: this.getDiscordBotUsername(),
+					avatarURL: this.getDiscordBotAvatarURL(),
+					embeds: [embed],
+				})
+				.then((data) => {
+					new Notice(`Successfully shared embed to Discord!`);
+				})
+				.catch((error) => {
+					console.log(error);
+					new Notice(
+						`Failed to share embed to Discord. ${error.message}.`
+					);
+				});
 		} else {
 			console.log("Failed to create embed.");
 		}
