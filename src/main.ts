@@ -7,10 +7,12 @@ import SettingsTab, {
 	ISettingsOptions,
 	PartialSettings,
 } from "src/Settings";
+import DiscordHelper from "./discord/DiscordHelper";
 
 export default class DiscordSharePlugin extends Plugin {
 	settings: ISettingsOptions;
 	discordManager: DiscordManager;
+	discordHelper: DiscordHelper;
 	workspace: Workspace;
 
 	async onload() {
@@ -19,6 +21,7 @@ export default class DiscordSharePlugin extends Plugin {
 			INITIAL_SETTINGS,
 			await this.loadData()
 		);
+		this.discordHelper = new DiscordHelper(this);
 		this.discordManager = new DiscordManager(this);
 		this.addSettingTab(new SettingsTab(this));
 		this.workspace = this.app.workspace;
@@ -33,6 +36,38 @@ export default class DiscordSharePlugin extends Plugin {
 					return !!discordWebhookURLSet;
 				}
 				new LocalImageModal(this).open();
+			},
+		});
+
+		this.addCommand({
+			id: "discord:share-embed-test",
+			name: "Share Embed to Discord Test",
+			checkCallback: (checking) => {
+				const discordWebhookURLSet =
+					this.getSettingValue("discordWebhookURL");
+				if (checking) {
+					return !!discordWebhookURLSet;
+				}
+				this.discordManager.shareEmbedTest();
+			},
+		});
+
+		this.addCommand({
+			id: "discord:share-embed",
+			name: "Share Embed to Discord",
+			checkCallback: (checking) => {
+				const discordWebhookURLSet =
+					this.getSettingValue("discordWebhookURL");
+				const file = this.workspace.getActiveFile();
+				if (checking) {
+					return !!file && !!discordWebhookURLSet;
+				}
+				if (file instanceof TFile) {
+					// this.discordManager.shareEmbed(file);
+					this.discordManager.shareEmbed(file);
+				} else {
+					new Notice("No active file found.");
+				}
 			},
 		});
 

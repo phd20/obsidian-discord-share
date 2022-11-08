@@ -1,5 +1,5 @@
 import DiscordSharePlugin from "src/main";
-import { PluginSettingTab, Setting } from "obsidian";
+import { ColorComponent, PluginSettingTab, Setting } from "obsidian";
 import { DiscordWebhookUsername } from "./discord/constants";
 
 export interface ISettingsOptions {
@@ -9,6 +9,7 @@ export interface ISettingsOptions {
 	showPreviewInLocalModal: boolean;
 	customBotUsername: string;
 	customBotAvatarURL: string;
+	embedColor: string;
 }
 
 export type PartialSettings = Partial<ISettingsOptions>;
@@ -20,6 +21,7 @@ export const INITIAL_SETTINGS: ISettingsOptions = {
 	showPreviewInLocalModal: true,
 	customBotUsername: "",
 	customBotAvatarURL: "",
+	embedColor: "",
 };
 
 export const DEFAULT_VALUES: PartialSettings = {
@@ -29,6 +31,7 @@ export const DEFAULT_VALUES: PartialSettings = {
 	showPreviewInLocalModal: true,
 	customBotUsername: "",
 	customBotAvatarURL: "",
+	embedColor: "",
 };
 
 export default class SettingsTab extends PluginSettingTab {
@@ -54,6 +57,7 @@ export default class SettingsTab extends PluginSettingTab {
 			showPreviewInLocalModal,
 			customBotUsername,
 			customBotAvatarURL,
+			embedColor,
 		} = this.plugin.settings;
 		containerEl.empty();
 
@@ -100,6 +104,20 @@ export default class SettingsTab extends PluginSettingTab {
 						this.saveSettings({ customBotAvatarURL: val })
 					)
 			);
+		
+		this.createHeader("Discord Embeds", "Embed default settings for Discord.");
+
+		new Setting(containerEl)
+				.setName("Embed Color")
+				.setDesc(`The default color for embeds.`)
+				.addColorPicker((colComp) => {
+					colComp
+					.setValue(embedColor)
+					.onChange(async (val) =>
+					this.saveSettings({ embedColor: val })
+				)
+			});
+
 
 		this.createHeader("Vault Settings", "Settings related to your vault.");
 
