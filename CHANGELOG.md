@@ -1,3 +1,6 @@
+## 1.2.0
+- Adds the `Share Embed to Discord` command
+
 ## 1.1.1
 - Fixes an issue with filepaths for attachments on Windows
 
