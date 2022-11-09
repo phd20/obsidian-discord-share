@@ -1,3 +1,6 @@
+## 1.2.1
+- Fixes an issue where missing `ods-fields` would prevent sharing an embed
+
 ## 1.2.0
 - Adds the `Share Embed to Discord` command
 
