@@ -52,7 +52,7 @@ export default class DiscordHelper {
 			.setThumbnail(frontmatter[DiscordEmbedThumbnail] || null)
 			.setTimestamp()
 			.setFooter(frontmatter[DiscordEmbedFooter] || null);
-		
+
 		const image = this.getImageFromFrontmatter(
 			frontmatter[DiscordEmbedImage],
 			file.path
