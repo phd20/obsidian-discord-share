@@ -50,7 +50,6 @@ export default class DiscordHelper {
 			.setAuthor(frontmatter[DiscordEmbedAuthor] || null)
 			.setDescription(frontmatter[DiscordEmbedDescription] || null)
 			.setThumbnail(frontmatter[DiscordEmbedThumbnail] || null)
-			.addFields(...(frontmatter[DiscordEmbedFields] || null))
 			.setTimestamp()
 			.setFooter(frontmatter[DiscordEmbedFooter] || null);
 		
@@ -60,6 +59,10 @@ export default class DiscordHelper {
 		);
 		if (image) {
 			embed.setImage(image.image);
+		}
+
+		if (frontmatter[DiscordEmbedFields]) {
+			embed.addFields(...frontmatter[DiscordEmbedFields]);
 		}
 
 		return {
