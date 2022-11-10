@@ -1,7 +1,7 @@
 import { AttachmentBuilder, EmbedBuilder } from "discord.js";
 import { FileSystemAdapter, MetadataCache, TFile, Vault } from "obsidian";
 import DiscordSharePlugin from "src/main";
-import { isValidUrl } from "src/util";
+import { isValidUrl } from "src/utils/util";
 import {
 	DiscordEmbedAuthor,
 	DiscordEmbedColor,
