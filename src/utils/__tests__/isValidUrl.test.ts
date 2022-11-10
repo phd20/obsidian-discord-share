@@ -5,6 +5,6 @@ describe('isValidU', () => {
       expect(isValidUrl('invalid-url.com')).toBe(false);
     });
     test('returns true for valid url', () => {
-        expect(isValidUrl('https://www.invalid-url.com')).toBe(false);
+        expect(isValidUrl('https://www.invalid-url.com')).toBe(true);
       });
   });
