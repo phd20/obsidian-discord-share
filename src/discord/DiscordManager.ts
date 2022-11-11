@@ -1,8 +1,15 @@
-import { EmbedBuilder, WebhookClient } from "discord.js";
+import {
+	AttachmentBuilder,
+	ColorResolvable,
+	EmbedBuilder,
+	WebhookClient,
+} from "discord.js";
 import DiscordSharePlugin from "src/main";
-import { MetadataCache, Notice, TFile, Vault } from "obsidian";
+import { FileSystemAdapter, MetadataCache, Notice, Vault } from "obsidian";
 import { DiscordWebhookAvatarURL, DiscordWebhookUsername } from "./constants";
 import DiscordHelper from "./DiscordHelper";
+import { DiscordEmbedParams } from "./types";
+import { isValidUrl } from "src/util";
 
 export default class DiscordManager {
 	plugin: DiscordSharePlugin;
@@ -10,12 +17,14 @@ export default class DiscordManager {
 	vault: Vault;
 	client: WebhookClient;
 	discordHelper: DiscordHelper;
+	adapter: FileSystemAdapter;
 
 	constructor(plugin: DiscordSharePlugin) {
 		this.plugin = plugin;
 		this.metadata = plugin.app.metadataCache;
 		this.vault = plugin.app.vault;
 		this.discordHelper = plugin.discordHelper;
+		this.adapter = plugin.app.vault.adapter as FileSystemAdapter;
 	}
 
 	public async shareAttachment(filePath: string, fileName: string) {
@@ -52,32 +61,64 @@ export default class DiscordManager {
 			});
 	}
 
-	public async shareEmbed(file: TFile) {
+	public async shareEmbed(params: DiscordEmbedParams) {
 		const webhookClient = new WebhookClient({
 			url: this.plugin.getSettingValue("discordWebhookURL") || "",
 		});
 
-		const embedBuild = this.discordHelper.buildEmbedFromFile(file);
-		if (embedBuild && embedBuild.embed instanceof EmbedBuilder) {
-			webhookClient
-				.send({
-					username: this.getDiscordBotUsername(),
-					avatarURL: this.getDiscordBotAvatarURL(),
-					embeds: [embedBuild.embed],
-					files: embedBuild.attachment ? [embedBuild.attachment] : [],
-				})
-				.then((data) => {
-					new Notice(`Successfully shared embed to Discord!`);
-				})
-				.catch((error) => {
-					console.log(error);
-					new Notice(
-						`Failed to share embed to Discord. ${error.message}.`
-					);
-				});
-		} else {
-			console.log("Failed to create embed.");
+		if (!params) {
+			console.log("shareEmbed() called with null or undefined params.");
 		}
+
+		const embedBuilder = new EmbedBuilder()
+			.setColor(
+				(params.color as ColorResolvable) ||
+					(this.plugin.getSettingValue(
+						"embedColor"
+					) as ColorResolvable) ||
+					null
+			)
+			.setTitle(params.title || null)
+			.setURL(params.url || null)
+			.setAuthor(params.author || null)
+			.setDescription(params.description || null)
+			.setImage(isValidUrl(params.image) ? params.image : null)
+			.setThumbnail(params.thumbnail || null)
+			.setFooter(params.footer || null)
+			.setTimestamp();
+
+		if (params.fields) {
+			embedBuilder.addFields(...params.fields);
+		}
+		const attachmentFile = this.metadata.getFirstLinkpathDest(
+			params.image[0][0], // This is dumb but works for now.
+			params.file?.path || ""
+		);
+		let attachment = undefined;
+		if (attachmentFile) {
+			embedBuilder.setImage(`attachment://${attachmentFile.name}`);
+			const attachmentFullPath = this.adapter.getFullPath(
+				attachmentFile.path
+			);
+			attachment = new AttachmentBuilder(attachmentFullPath);
+		}
+
+		webhookClient
+			.send({
+				username: this.getDiscordBotUsername(),
+				avatarURL: this.getDiscordBotAvatarURL(),
+				embeds: [embedBuilder],
+				files: attachment ? [attachment] : [],
+			})
+			.then((data) => {
+				new Notice(`Successfully shared embed to Discord!`);
+			})
+			.catch((error) => {
+				console.log(error);
+				new Notice(
+					`Failed to share embed to Discord. ${error.message}.`
+				);
+			});
 	}
 
 	public async shareFileTitle(title: string) {

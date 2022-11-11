@@ -50,7 +50,12 @@ export default class DiscordSharePlugin extends Plugin {
 					return !!file && !!discordWebhookURLSet;
 				}
 				if (file instanceof TFile) {
-					this.discordManager.shareEmbed(file);
+					const params = this.discordHelper.buildDiscordEmbedParamsFromFile(file);
+					if (!params) {
+						new Notice(`Failed to build Discord embed params from file ${file.name}.`);
+						return;
+					}
+					this.discordManager.shareEmbed(params);
 				} else {
 					new Notice("No active file found.");
 				}
