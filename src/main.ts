@@ -61,24 +61,6 @@ export default class DiscordSharePlugin extends Plugin {
 				}
 			},
 		});
-
-		this.addCommand({
-			id: "discord:share-title",
-			name: "Share Note Title to Discord",
-			checkCallback: (checking) => {
-				const discordWebhookURLSet =
-					this.getSettingValue("discordWebhookURL");
-				const file = this.workspace.getActiveFile();
-				if (checking) {
-					return !!file && !!discordWebhookURLSet;
-				}
-				if (file instanceof TFile) {
-					this.discordManager.shareFileTitle(file.basename);
-				} else {
-					new Notice("No active file found.");
-				}
-			},
-		});
 	}
 
 	onunload() {}

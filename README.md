@@ -6,6 +6,15 @@ This plugin allows you to share your Obsidian Vault content to Discord using [di
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C8XS4N)
 
+- [Discord Share Plugin](#discord-share-plugin)
+  - [Setup](#setup)
+    - [Install the Plugin](#install-the-plugin)
+    - [Optional Settings](#optional-settings)
+  - [Features](#features)
+  - [Share Attachment to Discord](#share-attachment-to-discord)
+  - [Share Embed to Discord](#share-embed-to-discord)
+    - [Example Frontmatter](#example-frontmatter)
+
 ## Setup
 1. [Install the Plugin](#install-the-plugin)
 2. Enable it.
@@ -28,18 +37,7 @@ You have two options for installing the plugin.
 
 ## Features
 
-- [Discord Share Plugin](#discord-share-plugin)
-  - [Setup](#setup)
-    - [Install the Plugin](#install-the-plugin)
-    - [Optional Settings](#optional-settings)
-  - [Features](#features)
-  - [Share Attachment to Discord](#share-attachment-to-discord)
-  - [Share Embed to Discord](#share-embed-to-discord)
-    - [Example Frontmatter](#example-frontmatter)
-  - [Share Note Title to Discord](#share-note-title-to-discord)
-
 ![discord-share](https://user-images.githubusercontent.com/33853403/200182343-fb077076-2ef4-400b-b651-5f430ff89063.gif)
-
 
 ## [Share Attachment to Discord](#share-attachment-to-discord)
 
@@ -79,7 +77,3 @@ ods-footer:
   text: Build using discord.js
   iconURL: 'https://avatars.githubusercontent.com/u/26492485'
 ```
-
-## [Share Note Title to Discord](#share-note-title-to-discord)
-
-Open the command palette and search for **Share Note Title to Discord**. Click on it or press `return` on your keyboard. **This option will not show in the menu if you don't have a note open.**

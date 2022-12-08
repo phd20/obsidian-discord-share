@@ -61,7 +61,7 @@ export default class DiscordManager {
 			});
 	}
 
-	public async shareEmbed(params: DiscordEmbedParams) {
+	public async shareEmbed(params: Partial<DiscordEmbedParams>) {
 		const webhookClient = new WebhookClient({
 			url: this.plugin.getSettingValue("discordWebhookURL") || "",
 		});
@@ -82,7 +82,9 @@ export default class DiscordManager {
 			.setURL(params.url || null)
 			.setAuthor(params.author || null)
 			.setDescription(params.description || null)
-			.setImage(isValidUrl(params.image) ? params.image : null)
+			.setImage(
+				params.image && isValidUrl(params.image) ? params.image : null
+			)
 			.setThumbnail(params.thumbnail || null)
 			.setFooter(params.footer || null)
 			.setTimestamp();
@@ -90,10 +92,15 @@ export default class DiscordManager {
 		if (params.fields) {
 			embedBuilder.addFields(...params.fields);
 		}
-		const attachmentFile = this.metadata.getFirstLinkpathDest(
-			params.image[0][0], // This is dumb but works for now.
-			params.file?.path || ""
-		);
+
+		let attachmentFile;
+		if (params.image) {
+			attachmentFile = this.metadata.getFirstLinkpathDest(
+				params.image && params.image[0][0] || "", // This is dumb but works for now.
+				params.file?.path || ""
+			);
+		}
+		
 		let attachment = undefined;
 		if (attachmentFile) {
 			embedBuilder.setImage(`attachment://${attachmentFile.name}`);
@@ -117,27 +124,6 @@ export default class DiscordManager {
 				console.log(error);
 				new Notice(
 					`Failed to share embed to Discord. ${error.message}.`
-				);
-			});
-	}
-
-	public async shareFileTitle(title: string) {
-		const webhookClient = new WebhookClient({
-			url: this.plugin.getSettingValue("discordWebhookURL") || "",
-		});
-
-		webhookClient
-			.send({
-				content: `**${title}**`,
-				username: this.getDiscordBotUsername(),
-				avatarURL: this.getDiscordBotAvatarURL(),
-			})
-			.then((data) => {
-				new Notice(`Successfully shared ${title} to Discord!`);
-			})
-			.catch((error) => {
-				new Notice(
-					`Failed to share ${title} to Discord. ${error.message}.`
 				);
 			});
 	}

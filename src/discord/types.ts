@@ -7,7 +7,7 @@ export interface DiscordEmbedParams {
     author: DiscordEmbedAuthorParams;
     description: string;
     thumbnail: string;
-    fields: DiscordEmbedFieldsParams;
+    fields: Array<DiscordEmbedFieldsParams>;
     image: string;
     footer: DiscordEmbedFooterParams;
     file?: TFile;

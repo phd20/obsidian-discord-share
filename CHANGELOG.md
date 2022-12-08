@@ -1,3 +1,7 @@
+## 2.0.0
+- Removes the `Share Note Title to Discord` command
+- Refactors embed sharing code
+
 ## 1.2.1
 - Fixes an issue where missing `ods-fields` would prevent sharing an embed
 
