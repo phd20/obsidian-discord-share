@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-discord-share",
 	"name": "Discord Share",
-	"version": "1.2.1",
+	"version": "2.0.0",
 	"minAppVersion": "0.15.0",
 	"description": "This is a plugin for sharing Obsidian vault content directly to Discord.",
 	"author": "PhD20",

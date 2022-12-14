@@ -1,28 +1,31 @@
-export interface DiscordEmbedFrontmatter {
+import { TFile } from "obsidian";
+
+export interface DiscordEmbedParams {
     color: string;
     title: string;
     url: string;
-    author: DiscordEmbedAuthorFrontmatter;
+    author: DiscordEmbedAuthorParams;
     description: string;
     thumbnail: string;
-    fields: DiscordEmbedFieldsFrontmatter;
+    fields: Array<DiscordEmbedFieldsParams>;
     image: string;
-    footer: DiscordEmbedFooterFrontmatter;
+    footer: DiscordEmbedFooterParams;
+    file?: TFile;
 }
 
-export interface DiscordEmbedAuthorFrontmatter {
+export interface DiscordEmbedAuthorParams {
     name: string;
     iconURL: string;
     url: string;
 }
 
-export interface DiscordEmbedFieldsFrontmatter {
+export interface DiscordEmbedFieldsParams {
     name: string;
     value: string;
     inline: boolean;
 }
 
-export interface DiscordEmbedFooterFrontmatter {
+export interface DiscordEmbedFooterParams {
     text: string;
     iconURL: string;
 }
