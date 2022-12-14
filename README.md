@@ -14,6 +14,7 @@ This plugin allows you to share your Obsidian Vault content to Discord using [di
   - [Share Attachment to Discord](#share-attachment-to-discord)
   - [Share Embed to Discord](#share-embed-to-discord)
     - [Example Frontmatter](#example-frontmatter)
+  - [Share Selection to Discord](#share-selection-to-discord)
 
 ## Setup
 1. [Install the Plugin](#install-the-plugin)
@@ -77,3 +78,10 @@ ods-footer:
   text: Build using discord.js
   iconURL: 'https://avatars.githubusercontent.com/u/26492485'
 ```
+
+## [Share Selection to Discord](#share-selection-to-discord)
+
+Open a file editor and select (highlight) any text. You can send this text to Discord in one of two ways:
+
+1. Open the command palette and search for **Share Selection to Discord**. Click on it or press `return` on your keyboard.
+2. Right-click on your selection to open the context menu. Choose **Share selection to Discord**.

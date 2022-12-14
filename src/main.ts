@@ -1,6 +1,6 @@
 import DiscordManager from "src/discord/DiscordManager";
 import LocalImageModal from "src/LocalImageModal";
-import { Notice, Plugin, TFile, Workspace } from "obsidian";
+import { Editor, FileSystemAdapter, Menu, Notice, Plugin, TFile, Workspace } from "obsidian";
 import SettingsTab, {
 	DEFAULT_VALUES,
 	INITIAL_SETTINGS,
@@ -8,6 +8,7 @@ import SettingsTab, {
 	PartialSettings,
 } from "src/Settings";
 import DiscordHelper from "./discord/DiscordHelper";
+import { DiscordEmbedParams } from "./discord/types";
 
 export default class DiscordSharePlugin extends Plugin {
 	settings: ISettingsOptions;
@@ -61,6 +62,40 @@ export default class DiscordSharePlugin extends Plugin {
 				}
 			},
 		});
+
+		this.addCommand({
+			id: "discord:share-selection",
+			name: "Share Selection to Discord",
+			editorCallback: async (editor: Editor) => {
+				const discordWebhookURLSet = this.getSettingValue("discordWebhookURL");
+				if (!discordWebhookURLSet || !editor.somethingSelected()) return;
+				const selection = editor.getSelection().trim();
+				const params: Partial<DiscordEmbedParams> = {
+					description: selection,
+				};
+				this.discordManager.shareEmbed(params);
+			},
+		  });
+
+		  this.registerEvent(
+            this.app.workspace.on("editor-menu", (menu, editor) => {
+				const discordWebhookURLSet = this.getSettingValue("discordWebhookURL");
+                if (!(this.app.vault.adapter instanceof FileSystemAdapter))
+                    return;
+				if (!discordWebhookURLSet || !editor.somethingSelected()) return;
+				const selection = editor.getSelection().trim();
+
+                menu.addItem((item) => {
+                    item.setTitle("Share selection to Discord")
+                        .onClick(async () => {
+                            const params: Partial<DiscordEmbedParams> = {
+								description: selection,
+							};
+							this.discordManager.shareEmbed(params);
+                        });
+                });
+            })
+        );
 	}
 
 	onunload() {}
