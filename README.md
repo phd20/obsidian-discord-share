@@ -38,7 +38,7 @@ You have two options for installing the plugin.
 
 ## Features
 
-![discord-share](https://user-images.githubusercontent.com/33853403/200182343-fb077076-2ef4-400b-b651-5f430ff89063.gif)
+![discord-share-features](https://user-images.githubusercontent.com/33853403/207925747-a0741053-668e-47a0-bc14-4d1aac17af90.gif)
 
 ## [Share Attachment to Discord](#share-attachment-to-discord)
 
