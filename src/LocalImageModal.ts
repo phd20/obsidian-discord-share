@@ -31,9 +31,11 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 	targetFile: TFile;
 	discordManager: DiscordManager;
 	adapter: FileSystemAdapter;
+	url: string;
 
-	constructor(plugin: DiscordSharePlugin) {
+	constructor(plugin: DiscordSharePlugin, url: string) {
 		super(plugin.app);
+		this.url = url;
 		this.plugin = plugin;
 		this.vault = plugin.app.vault;
 		this.discordManager = plugin.discordManager;
@@ -93,9 +95,13 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 	async onChooseItem(image: TFile) {
 		const path = this.adapter.getFullPath(image.path);
 		if (path) {
-			await this.discordManager.shareAttachment(path, image.name);
+			await this.discordManager.shareAttachment(
+				path,
+				image.name,
+				this.url
+			);
 		} else {
-			new Notice("Invalid file path.")
+			new Notice("Invalid file path.");
 			console.log(`Invalid file path: ${path}`);
 		}
 	}

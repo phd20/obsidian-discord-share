@@ -1,9 +1,10 @@
 import DiscordSharePlugin from "src/main";
 import { PluginSettingTab, Setting } from "obsidian";
 import { DiscordWebhookUsername } from "./discord/constants";
+import { DiscordWebhook } from "./WebhookURLModal";
 
 export interface ISettingsOptions {
-	discordWebhookURL: string;
+	discordWebhookURL: DiscordWebhook[];
 	attachmentsFolder: string;
 	localSuggestionsLimit: number;
 	showPreviewInLocalModal: boolean;
@@ -15,7 +16,7 @@ export interface ISettingsOptions {
 export type PartialSettings = Partial<ISettingsOptions>;
 
 export const INITIAL_SETTINGS: ISettingsOptions = {
-	discordWebhookURL: "",
+	discordWebhookURL: [],
 	attachmentsFolder: "",
 	localSuggestionsLimit: 10,
 	showPreviewInLocalModal: true,
@@ -25,7 +26,7 @@ export const INITIAL_SETTINGS: ISettingsOptions = {
 };
 
 export const DEFAULT_VALUES: PartialSettings = {
-	discordWebhookURL: "",
+	discordWebhookURL: [],
 	attachmentsFolder: "/",
 	localSuggestionsLimit: 10,
 	showPreviewInLocalModal: true,
@@ -65,17 +66,51 @@ export default class SettingsTab extends PluginSettingTab {
 
 		this.createHeader("Discord", "Connection settings for Discord.");
 
+		let webhookName: string;
+		let webhookURL: string;
+
 		new Setting(containerEl)
 			.setName("Discord Webhook URL")
 			.setDesc("Get this value from Discord")
 			.addText((text) =>
 				text
+					.setPlaceholder("Enter channel name")
+					.onChange(async (val) => (webhookName = val))
+			)
+			.addText((text) =>
+				text
 					.setPlaceholder("Enter your webhook URL")
-					.setValue(discordWebhookURL)
-					.onChange(async (val) =>
-						this.saveSettings({ discordWebhookURL: val })
-					)
-			);
+					.onChange(async (val) => (webhookURL = val))
+			)
+			.addExtraButton((b) => {
+				b.setIcon("plus-with-circle").onClick(async () => {
+					await this.saveSettings({
+						discordWebhookURL: [
+							...discordWebhookURL,
+							{ description: webhookName, url: webhookURL },
+						],
+					});
+					this.display();
+				});
+			});
+
+		const webhooks = containerEl.createDiv("additional");
+		discordWebhookURL.forEach((webhook) => {
+			new Setting(webhooks)
+				.setName(webhook.description)
+				.addExtraButton((b) =>
+					b.setIcon("trash").onClick(async () => {
+						await this.saveSettings({
+							discordWebhookURL: [
+								...discordWebhookURL.filter(
+									(f) => f.description != webhook.description
+								),
+							],
+						});
+						this.display();
+					})
+				);
+		});
 
 		new Setting(containerEl)
 			.setName("Custom Discord Bot Username")
@@ -84,40 +119,46 @@ export default class SettingsTab extends PluginSettingTab {
 			)
 			.addText((text) =>
 				text
-					.setPlaceholder("Enter a custom username for this Discord bot.")
+					.setPlaceholder(
+						"Enter a custom username for this Discord bot."
+					)
 					.setValue(customBotUsername)
 					.onChange(async (val) =>
 						this.saveSettings({ customBotUsername: val })
 					)
 			);
 
-			new Setting(containerEl)
+		new Setting(containerEl)
 			.setName("Custom Discord Bot Avatar")
 			.setDesc(
 				`The url of a custom avatar to use with this Discord bot. If empty, the Obsidian logo will be used.`
 			)
 			.addText((text) =>
 				text
-					.setPlaceholder("Enter the url of a custom avatar to use with this Discord bot.")
+					.setPlaceholder(
+						"Enter the url of a custom avatar to use with this Discord bot."
+					)
 					.setValue(customBotAvatarURL)
 					.onChange(async (val) =>
 						this.saveSettings({ customBotAvatarURL: val })
 					)
 			);
-		
-		this.createHeader("Discord Embeds", "Embed default settings for Discord.");
+
+		this.createHeader(
+			"Discord Embeds",
+			"Embed default settings for Discord."
+		);
 
 		new Setting(containerEl)
-				.setName("Embed Color")
-				.setDesc(`The default color for embeds.`)
-				.addColorPicker((colComp) => {
-					colComp
+			.setName("Embed Color")
+			.setDesc(`The default color for embeds.`)
+			.addColorPicker((colComp) => {
+				colComp
 					.setValue(embedColor)
 					.onChange(async (val) =>
-					this.saveSettings({ embedColor: val })
-				)
+						this.saveSettings({ embedColor: val })
+					);
 			});
-
 
 		this.createHeader("Vault Settings", "Settings related to your vault.");
 
