@@ -103,7 +103,7 @@ export default class SettingsTab extends PluginSettingTab {
 						await this.saveSettings({
 							discordWebhookURL: [
 								...discordWebhookURL.filter(
-									(f) => f.description != webhook.description
+									(f) => discordWebhookURL.indexOf(f) != discordWebhookURL.indexOf(webhook)
 								),
 							],
 						});
