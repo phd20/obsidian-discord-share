@@ -16,6 +16,7 @@ import SettingsTab, {
 } from "src/Settings";
 import DiscordHelper from "./discord/DiscordHelper";
 import { DiscordEmbedParams } from "./discord/types";
+import { WebhookURLModal } from "./WebhookURLModal";
 
 export default class DiscordSharePlugin extends Plugin {
 	settings: ISettingsOptions;
@@ -43,7 +44,9 @@ export default class DiscordSharePlugin extends Plugin {
 				if (checking) {
 					return !!discordWebhookURLSet;
 				}
-				new LocalImageModal(this).open();
+				new WebhookURLModal(this, (url: string) => {
+					new LocalImageModal(this, url).open();
+				}).open();
 			},
 		});
 
@@ -68,7 +71,9 @@ export default class DiscordSharePlugin extends Plugin {
 						);
 						return;
 					}
-					this.discordManager.shareEmbed(params);
+					new WebhookURLModal(this, (url: string) => {
+						this.discordManager.shareEmbed(params, url);
+					}).open();
 				} else {
 					new Notice("No active file found.");
 				}
@@ -87,7 +92,9 @@ export default class DiscordSharePlugin extends Plugin {
 				const params: Partial<DiscordEmbedParams> = {
 					description: selection,
 				};
-				this.discordManager.shareEmbed(params);
+				new WebhookURLModal(this, (url: string) => {
+					this.discordManager.shareEmbed(params, url);
+				}).open();
 			},
 		});
 
@@ -107,7 +114,9 @@ export default class DiscordSharePlugin extends Plugin {
 							const params: Partial<DiscordEmbedParams> = {
 								description: selection,
 							};
-							this.discordManager.shareEmbed(params);
+							new WebhookURLModal(this, (url: string) => {
+								this.discordManager.shareEmbed(params, url);
+							}).open();
 						}
 					);
 				});

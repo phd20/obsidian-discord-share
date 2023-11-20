@@ -27,10 +27,14 @@ export default class DiscordManager {
 		this.adapter = plugin.app.vault.adapter as FileSystemAdapter;
 	}
 
-	public async shareAttachment(filePath: string, fileName: string) {
+	public async shareAttachment(
+		filePath: string,
+		fileName: string,
+		url: string
+	) {
 		const RequestEntityTooLargeErrorCode = "Request entity too large";
 		const webhookClient = new WebhookClient({
-			url: this.plugin.getSettingValue("discordWebhookURL") || "",
+			url: url,
 		});
 
 		webhookClient
@@ -61,9 +65,9 @@ export default class DiscordManager {
 			});
 	}
 
-	public async shareEmbed(params: Partial<DiscordEmbedParams>) {
+	public async shareEmbed(params: Partial<DiscordEmbedParams>, url: string) {
 		const webhookClient = new WebhookClient({
-			url: this.plugin.getSettingValue("discordWebhookURL") || "",
+			url: url,
 		});
 
 		if (!params) {
@@ -96,11 +100,11 @@ export default class DiscordManager {
 		let attachmentFile;
 		if (params.image) {
 			attachmentFile = this.metadata.getFirstLinkpathDest(
-				params.image && params.image[0][0] || "", // This is dumb but works for now.
+				(params.image && params.image[0][0]) || "", // This is dumb but works for now.
 				params.file?.path || ""
 			);
 		}
-		
+
 		let attachment = undefined;
 		if (attachmentFile) {
 			embedBuilder.setImage(`attachment://${attachmentFile.name}`);
