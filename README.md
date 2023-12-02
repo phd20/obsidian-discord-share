@@ -2,7 +2,10 @@
 
 ![Obsidian Discord](https://user-images.githubusercontent.com/33853403/200464422-a66e62ee-08c9-4e75-bdc2-9bd585cef2ab.png)
 
-This plugin allows you to share your Obsidian Vault content to Discord using [discord.js](https://discord.js.org/). You can find the project roadmap [here](https://github.com/phd20/obsidian-discord-share/wiki/(Tentative)-Roadmap).
+This plugin allows you to share your Obsidian Vault content to Discord using [discord.js](https://discord.js.org/).
+
+> [!NOTE]  
+> Neither this plugin nor its authors are associated with Discord. 
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C8XS4N)
 
@@ -21,6 +24,7 @@ This plugin allows you to share your Obsidian Vault content to Discord using [di
 2. Enable it.
 3. Get a Webhook URL from Discord. See [this guide](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) for more on how to do this.
 4. Paste your Discord Webhook URL into the `Discord Webhook URL` setting for this plugin. **You must do this or the plugin will not work.**
+5. (Optional) Add more webhooks (you'll be prompted for which to use during each command).
 
 ### [Install the Plugin](#install-the-plugin)
 You have two options for installing the plugin.

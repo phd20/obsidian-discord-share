@@ -51,3 +51,7 @@
 .discord-share-settings .setting-item-control {
     gap: 8px;
 }
+
+.discord-webhook-setting {
+    margin: 0.25em 1em;
+}
