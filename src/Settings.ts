@@ -98,6 +98,7 @@ export default class SettingsTab extends PluginSettingTab {
 		discordWebhookURL.forEach((webhook) => {
 			new Setting(webhooks)
 				.setName(webhook.description)
+				.setClass("discord-webhook-setting")
 				.addExtraButton((b) =>
 					b.setIcon("trash").onClick(async () => {
 						await this.saveSettings({
