@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-sample-plugin",
-	"version": "2.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"name": "obsidian-discord-share",
+	"version": "2.1.1",
+	"description": "This plugin allows you to share your Obsidian Vault content to Discord",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
