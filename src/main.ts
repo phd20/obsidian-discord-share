@@ -3,6 +3,7 @@ import LocalImageModal from "src/LocalImageModal";
 import {
 	Editor,
 	FileSystemAdapter,
+	MarkdownView,
 	Notice,
 	Plugin,
 	TFile,
@@ -42,7 +43,7 @@ export default class DiscordSharePlugin extends Plugin {
 				const discordWebhookURLSet =
 					this.getSettingValue("discordWebhookURL");
 				if (checking) {
-					return !!discordWebhookURLSet;
+					return (discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0);
 				}
 				new WebhookURLModal(this, (url: string) => {
 					new LocalImageModal(this, url).open();
@@ -58,7 +59,7 @@ export default class DiscordSharePlugin extends Plugin {
 					this.getSettingValue("discordWebhookURL");
 				const file = this.workspace.getActiveFile();
 				if (checking) {
-					return !!file && !!discordWebhookURLSet;
+					return !!file && (discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0);
 				}
 				if (file instanceof TFile) {
 					const params =
@@ -83,11 +84,12 @@ export default class DiscordSharePlugin extends Plugin {
 		this.addCommand({
 			id: "discord:share-selection",
 			name: "Share Selection to Discord",
-			editorCallback: async (editor: Editor) => {
+			editorCheckCallback: (checking: boolean, editor: Editor, view: MarkdownView) => {
 				const discordWebhookURLSet =
 					this.getSettingValue("discordWebhookURL");
-				if (!discordWebhookURLSet || !editor.somethingSelected())
-					return;
+				if (checking) {
+					return (editor.somethingSelected() && (discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0))
+				}
 				const selection = editor.getSelection().trim();
 				const params: Partial<DiscordEmbedParams> = {
 					description: selection,
@@ -104,7 +106,7 @@ export default class DiscordSharePlugin extends Plugin {
 					this.getSettingValue("discordWebhookURL");
 				if (!(this.app.vault.adapter instanceof FileSystemAdapter))
 					return;
-				if (!discordWebhookURLSet || !editor.somethingSelected())
+				if (!(discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0) || !editor.somethingSelected())
 					return;
 				const selection = editor.getSelection().trim();
 
