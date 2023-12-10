@@ -1,6 +1,6 @@
 import DiscordSharePlugin from "src/main";
 import { PluginSettingTab, Setting } from "obsidian";
-import { DiscordWebhookUsername } from "./discord/constants";
+import { DiscordEmbedAuthor, DiscordEmbedDescription, DiscordEmbedFields, DiscordEmbedFooter, DiscordEmbedImage, DiscordEmbedThumbnail, DiscordEmbedTitle, DiscordEmbedURL, DiscordWebhookUsername } from "./discord/constants";
 import { DiscordWebhook } from "./WebhookURLModal";
 
 export interface ISettingsOptions {
@@ -10,7 +10,16 @@ export interface ISettingsOptions {
 	showPreviewInLocalModal: boolean;
 	customBotUsername: string;
 	customBotAvatarURL: string;
+	useNoteTitleForEmbed: boolean;
+	embedTitle: string;
 	embedColor: string;
+	embedURL: string;
+	embedAuthor: string;
+	embedDescription: string;
+	embedThumbnail: string;
+	embedFields: string;
+	embedImage: string;
+	embedFooter: string;
 }
 
 export type PartialSettings = Partial<ISettingsOptions>;
@@ -22,7 +31,16 @@ export const INITIAL_SETTINGS: ISettingsOptions = {
 	showPreviewInLocalModal: true,
 	customBotUsername: "",
 	customBotAvatarURL: "",
+	useNoteTitleForEmbed: false,
+	embedTitle: "",
 	embedColor: "",
+	embedURL: "",
+	embedAuthor: "",
+	embedDescription: "",
+	embedThumbnail: "",
+	embedFields: "",
+	embedImage: "",
+	embedFooter: "",
 };
 
 export const DEFAULT_VALUES: PartialSettings = {
@@ -32,7 +50,16 @@ export const DEFAULT_VALUES: PartialSettings = {
 	showPreviewInLocalModal: true,
 	customBotUsername: "",
 	customBotAvatarURL: "",
+	useNoteTitleForEmbed: false,
+	embedTitle: "",
 	embedColor: "",
+	embedURL: "",
+	embedAuthor: "",
+	embedDescription: "",
+	embedThumbnail: "",
+	embedFields: "",
+	embedImage: "",
+	embedFooter: "",
 };
 
 export default class SettingsTab extends PluginSettingTab {
@@ -58,7 +85,16 @@ export default class SettingsTab extends PluginSettingTab {
 			showPreviewInLocalModal,
 			customBotUsername,
 			customBotAvatarURL,
+			useNoteTitleForEmbed,
+			embedTitle,
 			embedColor,
+			embedURL,
+			embedAuthor,
+			embedDescription,
+			embedThumbnail,
+			embedFields,
+			embedImage,
+			embedFooter,
 		} = this.plugin.settings;
 		containerEl.empty();
 
@@ -145,13 +181,39 @@ export default class SettingsTab extends PluginSettingTab {
 					)
 			);
 
+		// Embed Settings
+
 		this.createHeader(
 			"Discord Embeds",
 			"Embed default settings for Discord."
 		);
 
 		new Setting(containerEl)
-			.setName("Embed Color")
+			.setName("Use Note Title for Embed Title")
+			.setDesc("When enabled, the plugin will use the note's title as the embed's title. This will override the Embed Title setting.")
+			.addToggle((toggle) =>
+					toggle
+						.setTooltip("Default to Note title")
+						.setValue(useNoteTitleForEmbed)
+						.onChange(async (val) =>
+							this.saveSettings({ useNoteTitleForEmbed: val })
+						));
+
+		new Setting(containerEl)
+			.setName("Embed Title Property")
+			.setDesc(`Which frontmatter property to use for the embed's title. If left blank, will default to: ${DiscordEmbedTitle}.`)
+			.addText((text) =>
+				text
+					.setPlaceholder(
+						"Enter the name of the frontmatter to use for title."
+					)
+					.setValue(embedTitle)
+					.onChange(async (val) =>
+						this.saveSettings({ embedTitle: val })
+					));
+
+		new Setting(containerEl)
+			.setName("Embed Color Property")
 			.setDesc(`The default color for embeds.`)
 			.addColorPicker((colComp) => {
 				colComp
@@ -160,6 +222,99 @@ export default class SettingsTab extends PluginSettingTab {
 						this.saveSettings({ embedColor: val })
 					);
 			});
+
+		new Setting(containerEl)
+			.setName("Embed URL Property")
+			.setDesc(`Which frontmatter property to use for the embed's URL. If left blank, will default to: ${DiscordEmbedURL}.`)
+			.addText((text) =>
+				text
+					.setPlaceholder(
+						"Enter the name of the frontmatter to use for URL."
+					)
+					.setValue(embedURL)
+					.onChange(async (val) =>
+						this.saveSettings({ embedURL: val })
+					));
+
+		new Setting(containerEl)
+			.setName("Embed Author Property")
+			.setDesc(`Which frontmatter property to use for the embed's author. If left blank, will default to: ${DiscordEmbedAuthor}.`)
+			.addText((text) =>
+				text
+					.setPlaceholder(
+						"Enter the name of the frontmatter to use for author."
+					)
+					.setValue(embedAuthor)
+					.onChange(async (val) =>
+						this.saveSettings({ embedAuthor: val })
+					));
+		
+		new Setting(containerEl)
+			.setName("Embed Description Property")
+			.setDesc(`Which frontmatter property to use for the embed's description. If left blank, will default to: ${DiscordEmbedDescription}.`)
+			.addText((text) =>
+				text
+					.setPlaceholder(
+						"Enter the name of the frontmatter to use for description."
+					)
+					.setValue(embedDescription)
+					.onChange(async (val) =>
+						this.saveSettings({ embedDescription: val })
+					));
+
+		new Setting(containerEl)
+			.setName("Embed Thumbnail Property")
+			.setDesc(`Which frontmatter property to use for the embed's thumbnail. If left blank, will default to: ${DiscordEmbedThumbnail}.`)
+			.addText((text) =>
+				text
+					.setPlaceholder(
+						"Enter the name of the frontmatter to use for thumbnail."
+					)
+					.setValue(embedThumbnail)
+					.onChange(async (val) =>
+						this.saveSettings({ embedThumbnail: val })
+					));
+
+		new Setting(containerEl)
+			.setName("Embed Fields Property")
+			.setDesc(`Which frontmatter property to use for the embed's fields. If left blank, will default to: ${DiscordEmbedFields}.`)
+			.addText((text) =>
+				text
+					.setPlaceholder(
+						"Enter the name of the frontmatter to use for fields."
+					)
+					.setValue(embedFields)
+					.onChange(async (val) =>
+						this.saveSettings({ embedFields: val })
+					));
+		
+		new Setting(containerEl)
+			.setName("Embed Image Property")
+			.setDesc(`Which frontmatter property to use for the embed's image. If left blank, will default to: ${DiscordEmbedImage}.`)
+			.addText((text) =>
+				text
+					.setPlaceholder(
+						"Enter the name of the frontmatter to use for image."
+					)
+					.setValue(embedImage)
+					.onChange(async (val) =>
+						this.saveSettings({ embedImage: val })
+					));
+		
+		new Setting(containerEl)
+			.setName("Embed Footer Property")
+			.setDesc(`Which frontmatter property to use for the embed's footer. If left blank, will default to: ${DiscordEmbedFooter}.`)
+			.addText((text) =>
+				text
+					.setPlaceholder(
+						"Enter the name of the frontmatter to use for footer."
+					)
+					.setValue(embedFooter)
+					.onChange(async (val) =>
+						this.saveSettings({ embedFooter: val })
+					));
+
+		// Vault Settings
 
 		this.createHeader("Vault Settings", "Settings related to your vault.");
 

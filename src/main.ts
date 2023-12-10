@@ -64,7 +64,8 @@ export default class DiscordSharePlugin extends Plugin {
 				if (file instanceof TFile) {
 					const params =
 						this.discordHelper.buildDiscordEmbedParamsFromFile(
-							file
+							file,
+							this.settings,
 						);
 					if (!params) {
 						new Notice(
