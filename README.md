@@ -38,7 +38,7 @@ You have two options for installing the plugin.
 - By default, the plugin will search all files for attachments. You can choose which folder to look for attachments in by updating the `Attachments folder` setting. If you set this, the plugin will only search that folder and all folders within it.
 - You can turn on/off image previews in the local image search by adjusting the `Show preview images` setting.
 - You can change the number of suggestions to show in the local image search by changing the `Suggestions limit` setting.
-- You can customize the default embed color by setting `Embed Color`. If a note specifies an embed color, it will override this setting.
+- You can override the default frontmatter properties for embeds (see Example Frontmatter below) to use your own values.
 
 ## Features
 
