@@ -192,12 +192,12 @@ export default class SettingsTab extends PluginSettingTab {
 			.setName("Use Note Title for Embed Title")
 			.setDesc("When enabled, the plugin will use the note's title as the embed's title. This will override the Embed Title setting.")
 			.addToggle((toggle) =>
-					toggle
-						.setTooltip("Default to Note title")
-						.setValue(useNoteTitleForEmbed)
-						.onChange(async (val) =>
-							this.saveSettings({ useNoteTitleForEmbed: val })
-						));
+				toggle
+					.setTooltip("Default to Note title")
+					.setValue(useNoteTitleForEmbed)
+					.onChange(async (val) =>
+						this.saveSettings({ useNoteTitleForEmbed: val })
+					));
 
 		new Setting(containerEl)
 			.setName("Embed Title Property")
@@ -248,7 +248,7 @@ export default class SettingsTab extends PluginSettingTab {
 					.onChange(async (val) =>
 						this.saveSettings({ embedAuthor: val })
 					));
-		
+
 		new Setting(containerEl)
 			.setName("Embed Description Property")
 			.setDesc(`Which frontmatter property to use for the embed's description. If left blank, will default to: ${DiscordEmbedDescription}.`)
@@ -287,7 +287,7 @@ export default class SettingsTab extends PluginSettingTab {
 					.onChange(async (val) =>
 						this.saveSettings({ embedFields: val })
 					));
-		
+
 		new Setting(containerEl)
 			.setName("Embed Image Property")
 			.setDesc(`Which frontmatter property to use for the embed's image. If left blank, will default to: ${DiscordEmbedImage}.`)
@@ -300,7 +300,7 @@ export default class SettingsTab extends PluginSettingTab {
 					.onChange(async (val) =>
 						this.saveSettings({ embedImage: val })
 					));
-		
+
 		new Setting(containerEl)
 			.setName("Embed Footer Property")
 			.setDesc(`Which frontmatter property to use for the embed's footer. If left blank, will default to: ${DiscordEmbedFooter}.`)
