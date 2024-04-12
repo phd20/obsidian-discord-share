@@ -120,10 +120,11 @@ export default class SettingsTab extends PluginSettingTab {
 			)
 			.addExtraButton((b) => {
 				b.setIcon("plus-with-circle").onClick(async () => {
+					const modernDiscordWebhookUrl = this.getModernDiscordWebhookUrl(webhookURL);
 					await this.saveSettings({
 						discordWebhookURL: [
 							...discordWebhookURL,
-							{ description: webhookName, url: webhookURL },
+							{ description: webhookName, url: modernDiscordWebhookUrl },
 						],
 					});
 					this.display();
@@ -401,5 +402,11 @@ export default class SettingsTab extends PluginSettingTab {
 				cls: "discord-share-setting-header-description",
 			});
 		}
+	}
+
+	private getModernDiscordWebhookUrl(url: string) {
+		const oldDomain = "discordapp.com";
+		const domain = "discord.com";
+		return url.replace(oldDomain, domain);
 	}
 }
