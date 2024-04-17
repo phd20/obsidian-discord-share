@@ -52,8 +52,8 @@ export default class DiscordSharePlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: "discord:share-embed",
-			name: "Share Embed to Discord",
+			id: "discord:share-current-note-properties",
+			name: "Share Current Note to Discord (Properties)",
 			checkCallback: (checking) => {
 				const discordWebhookURLSet =
 					this.getSettingValue("discordWebhookURL");

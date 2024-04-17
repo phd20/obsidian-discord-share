@@ -185,8 +185,8 @@ export default class SettingsTab extends PluginSettingTab {
 		// Embed Settings
 
 		this.createHeader(
-			"Discord Embeds",
-			"Embed default settings for Discord."
+			"Share Current Note to Discord (Properties)",
+			"Property settings for building Discord embeds."
 		);
 
 		new Setting(containerEl)
