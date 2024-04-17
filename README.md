@@ -15,8 +15,8 @@ This plugin allows you to share your Obsidian Vault content to Discord using [di
     - [Optional Settings](#optional-settings)
   - [Features](#features)
   - [Share Attachment to Discord](#share-attachment-to-discord)
-  - [Share Embed to Discord](#share-embed-to-discord)
-    - [Example Frontmatter](#example-frontmatter)
+  - [Share Current Note to Discord (Properties)](#share-current-note-to-discord-properties)
+    - [Example Properties](#example-properties)
   - [Share Selection to Discord](#share-selection-to-discord)
 
 ## Setup
@@ -48,13 +48,13 @@ You have two options for installing the plugin.
 
 Open the command palette and search for **Share Attachment to Discord**. Click on it or press `return` on your keyboard. This opens a modal to search your local image files. Search for the file you want and click on it or press `return` on your keyboard.
 
-## [Share Embed to Discord](#share-embed-to-discord)
+## [Share Current Note to Discord (Properties)](#share-current-note-to-discord-properties)
 
-Open the command palette and search for **Share Embed to Discord**. Click on it or press `return` on your keyboard. **This option will not show in the menu if you don't have a note open.**
+Open the command palette and search for **Share Current Note to Discord (Properties)**. Click on it or press `return` on your keyboard. **This option will not show in the menu if you don't have a note open.**
 
-This feature parses YAML frontmatter for the current note and shares it to Discord in a formatted embed. It's a great way to share prepared information with images and links.
+This feature parses YAML frontmatter (properties) for the current note and shares it to Discord in a formatted embed. It's a great way to share prepared information with images and links. You can configure in Settings which frontmatter fields (properties) map to which pieces of a Discord embed or use the defaults below.
 
-### Example Frontmatter
+### Example Properties
 
 ```
 ods-color: '#8D59D7' # If provided, this will override the `Embed Color` setting in the plugin's settings tab. 
