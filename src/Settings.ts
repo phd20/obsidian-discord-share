@@ -20,6 +20,7 @@ export interface ISettingsOptions {
 	embedFields: string;
 	embedImage: string;
 	embedFooter: string;
+	enableEmbedBuilder: boolean;
 }
 
 export type PartialSettings = Partial<ISettingsOptions>;
@@ -41,6 +42,7 @@ export const INITIAL_SETTINGS: ISettingsOptions = {
 	embedFields: "",
 	embedImage: "",
 	embedFooter: "",
+	enableEmbedBuilder: false,
 };
 
 export const DEFAULT_VALUES: PartialSettings = {
@@ -60,6 +62,7 @@ export const DEFAULT_VALUES: PartialSettings = {
 	embedFields: "",
 	embedImage: "",
 	embedFooter: "",
+	enableEmbedBuilder: false,
 };
 
 export default class SettingsTab extends PluginSettingTab {
@@ -95,6 +98,7 @@ export default class SettingsTab extends PluginSettingTab {
 			embedFields,
 			embedImage,
 			embedFooter,
+			enableEmbedBuilder,
 		} = this.plugin.settings;
 		containerEl.empty();
 
@@ -181,6 +185,17 @@ export default class SettingsTab extends PluginSettingTab {
 						this.saveSettings({ customBotAvatarURL: val })
 					)
 			);
+		
+		new Setting(containerEl)
+			.setName("Enable Embed Builder")
+			.setDesc("When enabled, the plugin will open a modal to configure embed values before sending to Discord.")
+			.addToggle((toggle) =>
+				toggle
+					.setTooltip("Enable manual embed builder")
+					.setValue(enableEmbedBuilder)
+					.onChange(async (val) =>
+						this.saveSettings({ enableEmbedBuilder: val })
+					));
 
 		// Embed Settings
 

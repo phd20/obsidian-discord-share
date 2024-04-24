@@ -18,6 +18,7 @@ import SettingsTab, {
 import DiscordHelper from "./discord/DiscordHelper";
 import { DiscordEmbedParams } from "./discord/types";
 import { WebhookURLModal } from "./WebhookURLModal";
+import { ShareEmbedModal } from "./ShareEmbedModal";
 
 export default class DiscordSharePlugin extends Plugin {
 	settings: ISettingsOptions;
@@ -88,6 +89,8 @@ export default class DiscordSharePlugin extends Plugin {
 			editorCheckCallback: (checking: boolean, editor: Editor, view: MarkdownView) => {
 				const discordWebhookURLSet =
 					this.getSettingValue("discordWebhookURL");
+				const enableEmbedBuilder =
+					this.getSettingValue("enableEmbedBuilder");
 				if (checking) {
 					return (editor.somethingSelected() && (discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0))
 				}
@@ -95,9 +98,13 @@ export default class DiscordSharePlugin extends Plugin {
 				const params: Partial<DiscordEmbedParams> = {
 					description: selection,
 				};
-				new WebhookURLModal(this, (url: string) => {
-					this.discordManager.shareEmbed(params, url);
-				}).open();
+				if (enableEmbedBuilder) {
+					new ShareEmbedModal(this, params).open();
+				} else {
+					new WebhookURLModal(this, (url: string) => {
+						this.discordManager.shareEmbed(params, url);
+					}).open();
+				}
 			},
 		});
 
@@ -105,6 +112,8 @@ export default class DiscordSharePlugin extends Plugin {
 			this.app.workspace.on("editor-menu", (menu, editor) => {
 				const discordWebhookURLSet =
 					this.getSettingValue("discordWebhookURL");
+				const enableEmbedBuilder =
+					this.getSettingValue("enableEmbedBuilder");
 				if (!(this.app.vault.adapter instanceof FileSystemAdapter))
 					return;
 				if (!(discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0) || !editor.somethingSelected())
@@ -117,9 +126,13 @@ export default class DiscordSharePlugin extends Plugin {
 							const params: Partial<DiscordEmbedParams> = {
 								description: selection,
 							};
-							new WebhookURLModal(this, (url: string) => {
-								this.discordManager.shareEmbed(params, url);
-							}).open();
+							if (enableEmbedBuilder) {
+								new ShareEmbedModal(this, params).open();
+							} else {
+								new WebhookURLModal(this, (url: string) => {
+									this.discordManager.shareEmbed(params, url);
+								}).open();
+							}
 						}
 					);
 				});
