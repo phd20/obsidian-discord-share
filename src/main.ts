@@ -36,6 +36,15 @@ export default class DiscordSharePlugin extends Plugin {
 		this.addSettingTab(new SettingsTab(this));
 		this.workspace = this.app.workspace;
 
+		let file: TFile | null = null;
+		let fileContents: string | null = null;
+
+		this.app.workspace.on('active-leaf-change', async () => {
+			console.log('Active leaf changed...')
+			file = this.workspace.getActiveFile();
+			fileContents = file instanceof TFile ? await this.app.vault.read(file) : null;
+		})
+
 		this.addCommand({
 			id: "discord:share-attachment",
 			name: "Share Attachment to Discord",
@@ -81,6 +90,35 @@ export default class DiscordSharePlugin extends Plugin {
 				}
 			},
 		});
+
+		this.addCommand({
+			id: "discord:share-current-note-content",
+			name: "Share Current Note to Discord (Content)",
+			checkCallback: (checking) => {
+				const discordWebhookURLSet =
+					this.getSettingValue("discordWebhookURL");
+				if (checking) {
+					return !!file && (discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0);
+				}
+				if (file instanceof TFile) {
+					const params: Partial<DiscordEmbedParams> = {
+						title: file.basename,
+						description: fileContents || "",
+					};
+					if (!params) {
+						new Notice(
+							`Failed to build Discord embed params from file ${file.name}.`
+						);
+						return;
+					}
+					new WebhookURLModal(this, (url: string) => {
+						this.discordManager.shareEmbed(params, url);
+					}).open();
+				} else {
+					new Notice("No active file found.");
+				}
+			}
+		})
 
 		this.addCommand({
 			id: "discord:share-selection",
