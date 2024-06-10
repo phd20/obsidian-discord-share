@@ -9,7 +9,7 @@ import { FileSystemAdapter, MetadataCache, Notice, Vault } from "obsidian";
 import { DiscordWebhookAvatarURL, DiscordWebhookUsername } from "./constants";
 import DiscordHelper from "./DiscordHelper";
 import { DiscordEmbedParams } from "./types";
-import { isValidUrl } from "src/util";
+import { isValidUrl } from "src/util/url";
 
 export default class DiscordManager {
 	plugin: DiscordSharePlugin;

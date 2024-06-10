@@ -13,6 +13,7 @@ import {
 } from "./constants";
 import { DiscordEmbedParams } from "./types";
 import { ISettingsOptions } from "src/Settings";
+import { removeFrontmatter, replaceLinkAliases, removeWikiLinks, removeObsidianComments } from "../../src/util/markdown"; // TODO - Fix module imports as this is gross.
 
 export default class DiscordHelper {
 	plugin: DiscordSharePlugin;
@@ -116,5 +117,16 @@ export default class DiscordHelper {
 		}
 
 		return embedParams;
+	}
+
+	public formatObsidianContentForDiscord = (obsidianContent: string) => {
+		let formattedContent = "";
+		
+		formattedContent = removeFrontmatter(obsidianContent);
+		formattedContent = removeObsidianComments(formattedContent);
+		formattedContent = replaceLinkAliases(formattedContent);
+		formattedContent = removeWikiLinks(formattedContent);
+
+		return formattedContent;
 	}
 }

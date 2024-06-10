@@ -24,6 +24,8 @@ export default class DiscordSharePlugin extends Plugin {
 	discordManager: DiscordManager;
 	discordHelper: DiscordHelper;
 	workspace: Workspace;
+	currentFile: TFile | null;
+	currentFileContents: string;
 
 	async onload() {
 		this.settings = Object.assign(
@@ -35,6 +37,23 @@ export default class DiscordSharePlugin extends Plugin {
 		this.discordManager = new DiscordManager(this);
 		this.addSettingTab(new SettingsTab(this));
 		this.workspace = this.app.workspace;
+		this.currentFile = this.workspace.getActiveFile();
+		this.currentFileContents = "";
+
+		this.app.workspace.on('active-leaf-change', async () => {
+			this.currentFile = this.workspace.getActiveFile();
+			if (this.currentFile) {
+				const contents = this.currentFile instanceof TFile ? await this.app.vault.read(this.currentFile) : "";
+				this.currentFileContents = contents;
+			} else {
+				this.currentFileContents = "";
+			}
+		})
+
+		this.app.workspace.on('editor-change', (editor) => {
+			const content = editor.getDoc().getValue();
+			this.currentFileContents = content;
+		})
 
 		this.addCommand({
 			id: "discord:share-attachment",
@@ -81,6 +100,36 @@ export default class DiscordSharePlugin extends Plugin {
 				}
 			},
 		});
+
+		this.addCommand({
+			id: "discord:share-current-note-content",
+			name: "Share Current Note to Discord (Content)",
+			checkCallback: (checking) => {
+				const discordWebhookURLSet =
+					this.getSettingValue("discordWebhookURL");
+				const discordContent = this.discordHelper.formatObsidianContentForDiscord(this.currentFileContents);
+				if (checking) {
+					return !!this.currentFile && (discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0);
+				}
+				if (this.currentFile instanceof TFile) {
+					const params: Partial<DiscordEmbedParams> = {
+						title: this.currentFile.basename,
+						description: discordContent || "",
+					};
+					if (!params) {
+						new Notice(
+							`Failed to build Discord embed params from file ${this.currentFile.name}.`
+						);
+						return;
+					}
+					new WebhookURLModal(this, (url: string) => {
+						this.discordManager.shareEmbed(params, url);
+					}).open();
+				} else {
+					new Notice("No active file found.");
+				}
+			}
+		})
 
 		this.addCommand({
 			id: "discord:share-selection",

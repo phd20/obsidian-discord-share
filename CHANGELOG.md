@@ -1,3 +1,7 @@
+## 2.4.0
+- Adds the `Share Current Note to Discord (Content)` command
+- Upgrades `esbuild`
+
 ## 2.0.0
 - Removes the `Share Note Title to Discord` command
 - Refactors embed sharing code
