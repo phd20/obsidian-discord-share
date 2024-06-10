@@ -192,7 +192,66 @@ describe('DiscordHelper', () => {
       //expect(result).toBeDefined();
       expect(result?.title).toBe('TestFile');
     });
+  });
 
-    // Add more test cases as needed for different scenarios
+  describe('formatObsidianContentForDiscord', () => {
+    const obsidianMdContent = `
+---
+title: "Sample Markdown"
+date: "2024-06-09"
+tags: ["example", "markdown", "frontmatter"]
+---
+
+![example-image](images/sample.jpg)
+
+# Heading
+
+This is an example markdown file with frontmatter. It contains various elements like images, headings, and text.
+
+%%
+This is a secret, don't want to share it.
+%%
+
+## Subheading
+
+Here is some more text under a subheading. It provides additional information about the markdown file.
+
+[[Wiki Link]]
+
+- Bullet point one
+- Bullet point two
+
+[[Wiki Link|Alias2]]
+
+The end of the content.
+`.trim();
+
+const discordContent = `
+![example-image](images/sample.jpg)
+
+# Heading
+
+This is an example markdown file with frontmatter. It contains various elements like images, headings, and text.
+
+
+
+## Subheading
+
+Here is some more text under a subheading. It provides additional information about the markdown file.
+
+Wiki Link
+
+- Bullet point one
+- Bullet point two
+
+Alias2
+
+The end of the content.
+`.trim();
+
+    it('formats Obsidian content for Discord', () => {
+      const result = discordHelper.formatObsidianContentForDiscord(obsidianMdContent);
+      expect(result).toBe(discordContent);
+    })
   });
 });

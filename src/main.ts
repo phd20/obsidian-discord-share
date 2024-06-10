@@ -37,12 +37,15 @@ export default class DiscordSharePlugin extends Plugin {
 		this.workspace = this.app.workspace;
 
 		let file: TFile | null = null;
-		let fileContents: string | null = null;
+		let fileContents: string = "";
 
 		this.app.workspace.on('active-leaf-change', async () => {
-			console.log('Active leaf changed...')
 			file = this.workspace.getActiveFile();
-			fileContents = file instanceof TFile ? await this.app.vault.read(file) : null;
+			if (file) {
+				fileContents = file instanceof TFile ? await this.app.vault.read(file) : "";
+			} else {
+				fileContents = "";
+			}
 		})
 
 		this.addCommand({
@@ -97,13 +100,14 @@ export default class DiscordSharePlugin extends Plugin {
 			checkCallback: (checking) => {
 				const discordWebhookURLSet =
 					this.getSettingValue("discordWebhookURL");
+				const discordContent = this.discordHelper.formatObsidianContentForDiscord(fileContents);
 				if (checking) {
 					return !!file && (discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0);
 				}
 				if (file instanceof TFile) {
 					const params: Partial<DiscordEmbedParams> = {
 						title: file.basename,
-						description: fileContents || "",
+						description: discordContent || "",
 					};
 					if (!params) {
 						new Notice(
