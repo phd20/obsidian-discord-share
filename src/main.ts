@@ -24,6 +24,8 @@ export default class DiscordSharePlugin extends Plugin {
 	discordManager: DiscordManager;
 	discordHelper: DiscordHelper;
 	workspace: Workspace;
+	currentFile: TFile | null;
+	currentFileContents: string;
 
 	async onload() {
 		this.settings = Object.assign(
@@ -35,17 +37,22 @@ export default class DiscordSharePlugin extends Plugin {
 		this.discordManager = new DiscordManager(this);
 		this.addSettingTab(new SettingsTab(this));
 		this.workspace = this.app.workspace;
-
-		let file: TFile | null = null;
-		let fileContents: string = "";
+		this.currentFile = this.workspace.getActiveFile();
+		this.currentFileContents = "";
 
 		this.app.workspace.on('active-leaf-change', async () => {
-			file = this.workspace.getActiveFile();
-			if (file) {
-				fileContents = file instanceof TFile ? await this.app.vault.read(file) : "";
+			this.currentFile = this.workspace.getActiveFile();
+			if (this.currentFile) {
+				const contents = this.currentFile instanceof TFile ? await this.app.vault.read(this.currentFile) : "";
+				this.currentFileContents = contents;
 			} else {
-				fileContents = "";
+				this.currentFileContents = "";
 			}
+		})
+
+		this.app.workspace.on('editor-change', (editor) => {
+			const content = editor.getDoc().getValue();
+			this.currentFileContents = content;
 		})
 
 		this.addCommand({
@@ -100,18 +107,18 @@ export default class DiscordSharePlugin extends Plugin {
 			checkCallback: (checking) => {
 				const discordWebhookURLSet =
 					this.getSettingValue("discordWebhookURL");
-				const discordContent = this.discordHelper.formatObsidianContentForDiscord(fileContents);
+				const discordContent = this.discordHelper.formatObsidianContentForDiscord(this.currentFileContents);
 				if (checking) {
-					return !!file && (discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0);
+					return !!this.currentFile && (discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0);
 				}
-				if (file instanceof TFile) {
+				if (this.currentFile instanceof TFile) {
 					const params: Partial<DiscordEmbedParams> = {
-						title: file.basename,
+						title: this.currentFile.basename,
 						description: discordContent || "",
 					};
 					if (!params) {
 						new Notice(
-							`Failed to build Discord embed params from file ${file.name}.`
+							`Failed to build Discord embed params from file ${this.currentFile.name}.`
 						);
 						return;
 					}
