@@ -18,6 +18,7 @@ This plugin allows you to share your Obsidian Vault content to Discord using [di
   - [Share Current Note to Discord (Properties)](#share-current-note-to-discord-properties)
     - [Example Properties](#example-properties)
   - [Share Selection to Discord](#share-selection-to-discord)
+  - [Share Current Note to Discord (Content)](#share-current-note-to-discord-content)
 
 ## Setup
 1. [Install the Plugin](#install-the-plugin)
@@ -89,3 +90,16 @@ Open a file editor and select (highlight) any text. You can send this text to Di
 
 1. Open the command palette and search for **Share Selection to Discord**. Click on it or press `return` on your keyboard.
 2. Right-click on your selection to open the context menu. Choose **Share selection to Discord**.
+
+## [Share Current Note to Discord (Content)](#share-current-note-to-discord-content)
+
+Open the command palette and search for **Share Current Note to Discord (Content)**. Click on it or press `return` on your keyboard. **This option will not show in the menu if you don't have a note open.**
+
+This feature uses the title and main content body for the current note and shares it to Discord in a formatted embed. It's a great way to share raw text content. For now, it will try to format your markdown content in the following ways:
+
+- Removes frontmatter (properties)
+- Removes Obsidian comments (`%% This would be removed %%`)
+- Replaces link aliases (`[[Link|Alias]]` becomes `Alias`)
+- Replaces wiki links (`[[Link]]` becomes `Link`)
+
+Future enhancements are planned for more sophisticated formatting (ex. images, markdown links, etc).
