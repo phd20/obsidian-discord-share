@@ -140,9 +140,10 @@ export default class DiscordSharePlugin extends Plugin {
 				if (checking) {
 					return (editor.somethingSelected() && (discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0))
 				}
-				const selection = editor.getSelection().trim();
+
+				const discordContent = this.discordHelper.formatObsidianContentForDiscord(editor.getSelection().trim());
 				const params: Partial<DiscordEmbedParams> = {
-					description: selection,
+					description: discordContent,
 				};
 				new WebhookURLModal(this, (url: string) => {
 					this.discordManager.shareEmbed(params, url);
@@ -158,13 +159,13 @@ export default class DiscordSharePlugin extends Plugin {
 					return;
 				if (!(discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0) || !editor.somethingSelected())
 					return;
-				const selection = editor.getSelection().trim();
+				const discordContent = this.discordHelper.formatObsidianContentForDiscord(editor.getSelection().trim());
 
 				menu.addItem((item) => {
 					item.setTitle("Share selection to Discord").onClick(
 						async () => {
 							const params: Partial<DiscordEmbedParams> = {
-								description: selection,
+								description: discordContent,
 							};
 							new WebhookURLModal(this, (url: string) => {
 								this.discordManager.shareEmbed(params, url);
