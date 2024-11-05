@@ -37,32 +37,32 @@ export default class DiscordManager {
 			url: url,
 		});
 
-		webhookClient
-			.send({
-				files: [
-					{
-						attachment: filePath,
-						name: fileName,
-					},
-				],
-				username: this.getDiscordBotUsername(),
-				avatarURL: this.getDiscordBotAvatarURL(),
-			})
-			.then((data) => {
-				new Notice(`Successfully shared ${fileName} to Discord!`);
-			})
-			.catch((error) => {
-				if (error && error.message === RequestEntityTooLargeErrorCode) {
-					new Notice(
-						`Failed to share ${fileName} to Discord. Attachments must be smaller than 8MB.`
-					);
-				} else {
-					new Notice(
-						`Failed to share ${fileName} to Discord. ${error.message}.`
-					);
-				}
-				console.log(error);
-			});
+		try {
+			await webhookClient
+				.send({
+					files: [
+						{
+							attachment: filePath,
+							name: fileName,
+						},
+					],
+					username: this.getDiscordBotUsername(),
+					avatarURL: this.getDiscordBotAvatarURL(),
+				});
+			new Notice(`Successfully shared ${fileName} to Discord!`);
+		}
+		catch (error) {
+			if (error && error.message === RequestEntityTooLargeErrorCode) {
+				new Notice(
+					`Failed to share ${fileName} to Discord. Attachments must be smaller than 8MB.`
+				);
+			} else {
+				new Notice(
+					`Failed to share ${fileName} to Discord. ${error.message}.`
+				);
+			}
+			console.log(error);
+		}
 	}
 
 	public async shareEmbed(params: Partial<DiscordEmbedParams>, url: string) {
@@ -114,22 +114,22 @@ export default class DiscordManager {
 			attachment = new AttachmentBuilder(attachmentFullPath);
 		}
 
-		webhookClient
-			.send({
-				username: this.getDiscordBotUsername(),
-				avatarURL: this.getDiscordBotAvatarURL(),
-				embeds: [embedBuilder],
-				files: attachment ? [attachment] : [],
-			})
-			.then((data) => {
-				new Notice(`Successfully shared embed to Discord!`);
-			})
-			.catch((error) => {
-				console.log(error);
-				new Notice(
-					`Failed to share embed to Discord. ${error.message}.`
-				);
-			});
+		try {
+			await webhookClient
+					.send({
+						username: this.getDiscordBotUsername(),
+						avatarURL: this.getDiscordBotAvatarURL(),
+						embeds: [embedBuilder],
+						files: attachment ? [attachment] : [],
+					});
+			new Notice(`Successfully shared embed to Discord!`);
+		}
+		catch (error) {
+			console.log(error);
+			new Notice(
+				`Failed to share embed to Discord. ${error.message}.`
+			);
+		}
 	}
 
 	private getDiscordBotUsername() {
