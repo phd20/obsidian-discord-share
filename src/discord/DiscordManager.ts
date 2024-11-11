@@ -78,8 +78,8 @@ export default class DiscordManager {
 			.setColor(
 				(params.color as ColorResolvable) ||
 					(this.plugin.getSettingValue(
-						"embedColor"
-					) as ColorResolvable) ||
+						"embedPropertyOverrides"
+					)?.embedColorPropertyOverride as ColorResolvable) ||
 					null
 			)
 			.setTitle(params.title || null)

@@ -11,15 +11,19 @@ export interface ISettingsOptions {
 	customBotUsername: string;
 	customBotAvatarURL: string;
 	useNoteTitleForEmbed: boolean;
-	embedTitle: string;
-	embedColor: string;
-	embedURL: string;
-	embedAuthor: string;
-	embedDescription: string;
-	embedThumbnail: string;
-	embedFields: string;
-	embedImage: string;
-	embedFooter: string;
+	embedPropertyOverrides: IEmbedPropertyOverrides;
+}
+
+interface IEmbedPropertyOverrides {
+	embedTitlePropertyOverride: string;
+	embedColorPropertyOverride: string;
+	embedURLPropertyOverride: string;
+	embedAuthorPropertyOverride: string;
+	embedDescriptionPropertyOverride: string;
+	embedThumbnailPropertyOverride: string;
+	embedFieldsPropertyOverride: string;
+	embedImagePropertyOverride: string;
+	embedFooterPropertyOverride: string;
 }
 
 export type PartialSettings = Partial<ISettingsOptions>;
@@ -32,15 +36,17 @@ export const INITIAL_SETTINGS: ISettingsOptions = {
 	customBotUsername: "",
 	customBotAvatarURL: "",
 	useNoteTitleForEmbed: false,
-	embedTitle: "",
-	embedColor: "",
-	embedURL: "",
-	embedAuthor: "",
-	embedDescription: "",
-	embedThumbnail: "",
-	embedFields: "",
-	embedImage: "",
-	embedFooter: "",
+	embedPropertyOverrides: {
+		embedTitlePropertyOverride: "",
+		embedColorPropertyOverride: "",
+		embedURLPropertyOverride: "",
+		embedAuthorPropertyOverride: "",
+		embedDescriptionPropertyOverride: "",
+		embedThumbnailPropertyOverride: "",
+		embedFieldsPropertyOverride: "",
+		embedImagePropertyOverride: "",
+		embedFooterPropertyOverride: "",
+	},
 };
 
 export const DEFAULT_VALUES: PartialSettings = {
@@ -51,15 +57,17 @@ export const DEFAULT_VALUES: PartialSettings = {
 	customBotUsername: "",
 	customBotAvatarURL: "",
 	useNoteTitleForEmbed: false,
-	embedTitle: "",
-	embedColor: "",
-	embedURL: "",
-	embedAuthor: "",
-	embedDescription: "",
-	embedThumbnail: "",
-	embedFields: "",
-	embedImage: "",
-	embedFooter: "",
+	embedPropertyOverrides: {
+		embedTitlePropertyOverride: "",
+		embedColorPropertyOverride: "",
+		embedURLPropertyOverride: "",
+		embedAuthorPropertyOverride: "",
+		embedDescriptionPropertyOverride: "",
+		embedThumbnailPropertyOverride: "",
+		embedFieldsPropertyOverride: "",
+		embedImagePropertyOverride: "",
+		embedFooterPropertyOverride: "",
+	},
 };
 
 export default class SettingsTab extends PluginSettingTab {
@@ -86,15 +94,7 @@ export default class SettingsTab extends PluginSettingTab {
 			customBotUsername,
 			customBotAvatarURL,
 			useNoteTitleForEmbed,
-			embedTitle,
-			embedColor,
-			embedURL,
-			embedAuthor,
-			embedDescription,
-			embedThumbnail,
-			embedFields,
-			embedImage,
-			embedFooter,
+			embedPropertyOverrides,
 		} = this.plugin.settings;
 		containerEl.empty();
 
@@ -182,7 +182,7 @@ export default class SettingsTab extends PluginSettingTab {
 					)
 			);
 
-		// Embed Settings
+		//#region Embed Settings
 
 		this.createHeader(
 			"Share Current Note to Discord (Properties)",
@@ -200,6 +200,8 @@ export default class SettingsTab extends PluginSettingTab {
 						this.saveSettings({ useNoteTitleForEmbed: val })
 					));
 
+		//#region Embed Property Overrides
+
 		new Setting(containerEl)
 			.setName("Embed Title Property")
 			.setDesc(`Which frontmatter property to use for the embed's title. If left blank, will default to: ${DiscordEmbedTitle}.`)
@@ -208,19 +210,25 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(
 						"Enter the name of the frontmatter to use for title."
 					)
-					.setValue(embedTitle)
-					.onChange(async (val) =>
-						this.saveSettings({ embedTitle: val })
-					));
+					.setValue(embedPropertyOverrides.embedTitlePropertyOverride)
+					.onChange(async (val) => {
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedTitlePropertyOverride: val,
+						} })
+				}));
 
 		new Setting(containerEl)
 			.setName("Embed Color Property")
 			.setDesc(`The default color for embeds.`)
 			.addColorPicker((colComp) => {
 				colComp
-					.setValue(embedColor)
+					.setValue(embedPropertyOverrides.embedColorPropertyOverride)
 					.onChange(async (val) =>
-						this.saveSettings({ embedColor: val })
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedColorPropertyOverride: val,
+						} })
 					);
 			});
 
@@ -232,9 +240,12 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(
 						"Enter the name of the frontmatter to use for URL."
 					)
-					.setValue(embedURL)
+					.setValue(embedPropertyOverrides.embedURLPropertyOverride)
 					.onChange(async (val) =>
-						this.saveSettings({ embedURL: val })
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedURLPropertyOverride: val,
+						} })
 					));
 
 		new Setting(containerEl)
@@ -245,9 +256,12 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(
 						"Enter the name of the frontmatter to use for author."
 					)
-					.setValue(embedAuthor)
+					.setValue(embedPropertyOverrides.embedAuthorPropertyOverride)
 					.onChange(async (val) =>
-						this.saveSettings({ embedAuthor: val })
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedAuthorPropertyOverride: val
+						} })
 					));
 
 		new Setting(containerEl)
@@ -258,9 +272,12 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(
 						"Enter the name of the frontmatter to use for description."
 					)
-					.setValue(embedDescription)
+					.setValue(embedPropertyOverrides.embedDescriptionPropertyOverride)
 					.onChange(async (val) =>
-						this.saveSettings({ embedDescription: val })
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedDescriptionPropertyOverride: val,
+						} })
 					));
 
 		new Setting(containerEl)
@@ -271,9 +288,12 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(
 						"Enter the name of the frontmatter to use for thumbnail."
 					)
-					.setValue(embedThumbnail)
+					.setValue(embedPropertyOverrides.embedThumbnailPropertyOverride)
 					.onChange(async (val) =>
-						this.saveSettings({ embedThumbnail: val })
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedThumbnailPropertyOverride: val,
+						} })
 					));
 
 		new Setting(containerEl)
@@ -284,9 +304,12 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(
 						"Enter the name of the frontmatter to use for fields."
 					)
-					.setValue(embedFields)
+					.setValue(embedPropertyOverrides.embedFieldsPropertyOverride)
 					.onChange(async (val) =>
-						this.saveSettings({ embedFields: val })
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedFieldsPropertyOverride: val,
+						} })
 					));
 
 		new Setting(containerEl)
@@ -297,9 +320,12 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(
 						"Enter the name of the frontmatter to use for image."
 					)
-					.setValue(embedImage)
+					.setValue(embedPropertyOverrides.embedImagePropertyOverride)
 					.onChange(async (val) =>
-						this.saveSettings({ embedImage: val })
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedImagePropertyOverride: val,
+						} })
 					));
 
 		new Setting(containerEl)
@@ -310,10 +336,17 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(
 						"Enter the name of the frontmatter to use for footer."
 					)
-					.setValue(embedFooter)
+					.setValue(embedPropertyOverrides.embedFooterPropertyOverride)
 					.onChange(async (val) =>
-						this.saveSettings({ embedFooter: val })
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedFooterPropertyOverride: val,
+						} })
 					));
+
+		//#endregion Embed Property Overrides
+
+		//#endregion Embed Settings
 
 		// Vault Settings
 

@@ -40,61 +40,63 @@ export default class DiscordHelper {
 			return;
 		}
 
+		const { embedPropertyOverrides } = settings;
+
 		const getValueForParam = (param: string) => {
 			switch (param) {
 				case "color":
 					if (frontmatter[DiscordEmbedColor]) {
 						return frontmatter[DiscordEmbedColor];
 					} else {
-						return settings.embedColor;
+						return embedPropertyOverrides.embedColorPropertyOverride;
 					}
 				case "title":
 					if (settings.useNoteTitleForEmbed) {
 						return file.basename;
-					} else if (settings.embedTitle) {
-						return frontmatter[settings.embedTitle];
+					} else if (embedPropertyOverrides.embedTitlePropertyOverride) {
+						return frontmatter[embedPropertyOverrides.embedTitlePropertyOverride];
 					} else {
 						return frontmatter[DiscordEmbedTitle];
 					}
 				case "url":
-					if (settings.embedURL) {
-						return frontmatter[settings.embedURL];
+					if (embedPropertyOverrides.embedURLPropertyOverride) {
+						return frontmatter[embedPropertyOverrides.embedURLPropertyOverride];
 					} else {
 						return frontmatter[DiscordEmbedURL];
 					}
 				case "author":
-					if (settings.embedAuthor) {
-						return frontmatter[settings.embedAuthor];
+					if (embedPropertyOverrides.embedAuthorPropertyOverride) {
+						return frontmatter[embedPropertyOverrides.embedAuthorPropertyOverride];
 					} else {
 						return frontmatter[DiscordEmbedAuthor];
 					}
 				case "description":
-					if (settings.embedDescription) {
-						return frontmatter[settings.embedDescription];
+					if (embedPropertyOverrides.embedDescriptionPropertyOverride) {
+						return frontmatter[embedPropertyOverrides.embedDescriptionPropertyOverride];
 					} else {
 						return frontmatter[DiscordEmbedDescription];
 					}
 				case "thumbnail":
-					if (settings.embedThumbnail) {
-						return frontmatter[settings.embedThumbnail];
+					if (embedPropertyOverrides.embedThumbnailPropertyOverride) {
+						return frontmatter[embedPropertyOverrides.embedThumbnailPropertyOverride];
 					} else {
 						return frontmatter[DiscordEmbedThumbnail];
 					}
 				case "fields":
-					if (settings.embedFields) {
-						return frontmatter[settings.embedFields];
+					if (embedPropertyOverrides.embedFieldsPropertyOverride) {
+						return frontmatter[embedPropertyOverrides.embedFieldsPropertyOverride];
 					} else {
 						return frontmatter[DiscordEmbedFields];
 					}
 				case "image":
-					if (settings.embedImage) {
-						return frontmatter[settings.embedImage];
+					if (embedPropertyOverrides.embedImagePropertyOverride) {
+						return frontmatter[embedPropertyOverrides.embedImagePropertyOverride];
 					} else {
 						return frontmatter[DiscordEmbedImage];
 					}
 				case "footer":
-					if (settings.embedFooter) {
-						return frontmatter[settings.embedFooter];
+					if (embedPropertyOverrides.embedFooterPropertyOverride) {
+						return frontmatter[embedPropertyOverrides.embedFooterPropertyOverride];
 					} else {
 						return frontmatter[DiscordEmbedFooter];
 					}

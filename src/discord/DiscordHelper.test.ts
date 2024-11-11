@@ -1,6 +1,7 @@
 import DiscordHelper from './DiscordHelper';
 import { TFile } from 'obsidian';
 import { DiscordEmbedAuthor, DiscordEmbedColor, DiscordEmbedDescription, DiscordEmbedFields, DiscordEmbedFooter, DiscordEmbedImage, DiscordEmbedThumbnail, DiscordEmbedTitle, DiscordEmbedURL } from './constants';
+import { ISettingsOptions } from 'src/Settings';
 
 // Mocking dependencies
 const mockPlugin = {
@@ -18,14 +19,59 @@ const mockPlugin = {
 } as any;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-let mockSettings = {} as any;
+let mockSettings: ISettingsOptions = {
+  discordWebhookURL: [],
+	attachmentsFolder: "",
+	localSuggestionsLimit: 10,
+	showPreviewInLocalModal: true,
+	customBotUsername: "",
+	customBotAvatarURL: "",
+	useNoteTitleForEmbed: false,
+	embedPropertyOverrides: {
+		embedTitlePropertyOverride: "",
+		embedColorPropertyOverride: "",
+		embedURLPropertyOverride: "",
+		embedAuthorPropertyOverride: "",
+		embedDescriptionPropertyOverride: "",
+		embedThumbnailPropertyOverride: "",
+		embedFieldsPropertyOverride: "",
+		embedImagePropertyOverride: "",
+		embedFooterPropertyOverride: "",
+	},
+}
+
+let initSettings: ISettingsOptions = {
+  discordWebhookURL: [],
+	attachmentsFolder: "",
+	localSuggestionsLimit: 10,
+	showPreviewInLocalModal: true,
+	customBotUsername: "",
+	customBotAvatarURL: "",
+	useNoteTitleForEmbed: false,
+	embedPropertyOverrides: {
+		embedTitlePropertyOverride: "",
+		embedColorPropertyOverride: "",
+		embedURLPropertyOverride: "",
+		embedAuthorPropertyOverride: "",
+		embedDescriptionPropertyOverride: "",
+		embedThumbnailPropertyOverride: "",
+		embedFieldsPropertyOverride: "",
+		embedImagePropertyOverride: "",
+		embedFooterPropertyOverride: "",
+	},
+}
 
 describe('DiscordHelper', () => {
   let discordHelper: DiscordHelper;
 
   beforeEach(() => {
     discordHelper = new DiscordHelper(mockPlugin);
-    mockSettings = {};
+    mockSettings = {
+      ...initSettings,
+      embedPropertyOverrides: {
+        ...initSettings.embedPropertyOverrides,
+      }
+    };
   });
 
   describe('buildDiscordEmbedParamsFromFile', () => {
@@ -90,7 +136,7 @@ describe('DiscordHelper', () => {
         frontmatter: mockFrontmatter,
       });
 
-      mockSettings.embedColor = "red";
+      mockSettings.embedPropertyOverrides.embedColorPropertyOverride = "red";
 
       const result = discordHelper.buildDiscordEmbedParamsFromFile(mockFile, mockSettings);
 
@@ -111,7 +157,7 @@ describe('DiscordHelper', () => {
         frontmatter: mockFrontmatter,
       });
 
-      mockSettings.embedColor = "red";
+      mockSettings.embedPropertyOverrides.embedColorPropertyOverride = "red";
 
       const result = discordHelper.buildDiscordEmbedParamsFromFile(mockFile, mockSettings);
 
@@ -146,14 +192,14 @@ describe('DiscordHelper', () => {
         frontmatter: mockFrontmatter,
       });
 
-      mockSettings.embedTitle = "override-title";
-      mockSettings.embedURL = "override-url";
-      mockSettings.embedAuthor = "override-author";
-      mockSettings.embedDescription = "override-description";
-      mockSettings.embedThumbnail = "override-thumbnail";
-      mockSettings.embedFields = "override-fields";
-      mockSettings.embedImage = "override-image";
-      mockSettings.embedFooter = "override-footer";
+      mockSettings.embedPropertyOverrides.embedTitlePropertyOverride = "override-title";
+      mockSettings.embedPropertyOverrides.embedURLPropertyOverride = "override-url";
+      mockSettings.embedPropertyOverrides.embedAuthorPropertyOverride = "override-author";
+      mockSettings.embedPropertyOverrides.embedDescriptionPropertyOverride = "override-description";
+      mockSettings.embedPropertyOverrides.embedThumbnailPropertyOverride = "override-thumbnail";
+      mockSettings.embedPropertyOverrides.embedFieldsPropertyOverride = "override-fields";
+      mockSettings.embedPropertyOverrides.embedImagePropertyOverride = "override-image";
+      mockSettings.embedPropertyOverrides.embedFooterPropertyOverride = "override-footer";
 
       const result = discordHelper.buildDiscordEmbedParamsFromFile(mockFile, mockSettings);
 
@@ -161,6 +207,7 @@ describe('DiscordHelper', () => {
         title: 'overrideTitle',
         url: 'overrideUrl',
         author: 'overrideAuthor',
+        color: '',
         description: 'overrideDescription',
         thumbnail: 'overrideThumbnail',
         fields: 'overrideFields',
