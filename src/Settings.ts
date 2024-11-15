@@ -3,7 +3,63 @@ import { PluginSettingTab, Setting } from "obsidian";
 import { DiscordEmbedAuthor, DiscordEmbedDescription, DiscordEmbedFields, DiscordEmbedFooter, DiscordEmbedImage, DiscordEmbedThumbnail, DiscordEmbedTitle, DiscordEmbedURL, DiscordWebhookUsername } from "./discord/constants";
 import { DiscordWebhook } from "./WebhookURLModal";
 
+export const SETTINGS_VERSION = "1.0.0";
+
 export interface ISettingsOptions {
+	version: string;
+	discordWebhookURL: DiscordWebhook[];
+	attachmentsFolder: string;
+	localSuggestionsLimit: number;
+	showPreviewInLocalModal: boolean;
+	customBotUsername: string;
+	customBotAvatarURL: string;
+	useNoteTitleForEmbed: boolean;
+	embedDefaultValues: IEmbedDefaultValues;
+	embedPropertyOverrides: IEmbedPropertyOverrideSettings;
+}
+
+interface IEmbedDefaultValues {
+	embedDefaultTitle: string;
+	embedDefaultColor: string;
+	embedDefaultURL: string;
+	embedDefaultAuthor: IEmbedDefaultAuthorSettings;
+	embedDefaultDescription: string;
+	embedDefaultThumbnail: string;
+	embedDefaultFields: IEmbedDefaultFieldsSettings[];
+	embedDefaultImage: string;
+	embedDefaultFooter: IEmbedDefaultFooterSettings;
+}
+
+export interface IEmbedDefaultAuthorSettings {
+	name: string;
+	iconURL: string;
+	url: string;
+}
+
+export interface IEmbedDefaultFieldsSettings {
+	name: string;
+	value: string;
+	inline: boolean;
+}
+
+export interface IEmbedDefaultFooterSettings {
+	text: string;
+	iconURL: string;
+}
+
+export interface IEmbedPropertyOverrideSettings {
+	embedTitlePropertyOverride: string;
+	embedColorPropertyOverride: string;
+	embedURLPropertyOverride: string;
+	embedAuthorPropertyOverride: string;
+	embedDescriptionPropertyOverride: string;
+	embedThumbnailPropertyOverride: string;
+	embedFieldsPropertyOverride: string;
+	embedImagePropertyOverride: string;
+	embedFooterPropertyOverride: string;
+}
+
+export interface IObsoleteSettingsOptions {
 	discordWebhookURL: DiscordWebhook[];
 	attachmentsFolder: string;
 	localSuggestionsLimit: number;
@@ -25,6 +81,7 @@ export interface ISettingsOptions {
 export type PartialSettings = Partial<ISettingsOptions>;
 
 export const INITIAL_SETTINGS: ISettingsOptions = {
+	version: SETTINGS_VERSION,
 	discordWebhookURL: [],
 	attachmentsFolder: "",
 	localSuggestionsLimit: 10,
@@ -32,18 +89,39 @@ export const INITIAL_SETTINGS: ISettingsOptions = {
 	customBotUsername: "",
 	customBotAvatarURL: "",
 	useNoteTitleForEmbed: false,
-	embedTitle: "",
-	embedColor: "",
-	embedURL: "",
-	embedAuthor: "",
-	embedDescription: "",
-	embedThumbnail: "",
-	embedFields: "",
-	embedImage: "",
-	embedFooter: "",
+	embedDefaultValues: {
+		embedDefaultTitle: "",
+		embedDefaultColor: "",
+		embedDefaultURL: "",
+		embedDefaultAuthor: {
+			name: "",
+			iconURL: "",
+			url: "",
+		},
+		embedDefaultDescription: "",
+		embedDefaultThumbnail: "",
+		embedDefaultFields: [],
+		embedDefaultImage: "",
+		embedDefaultFooter: {
+			text: "",
+			iconURL: "",
+		},
+	},
+	embedPropertyOverrides: {
+		embedTitlePropertyOverride: "",
+		embedColorPropertyOverride: "",
+		embedURLPropertyOverride: "",
+		embedAuthorPropertyOverride: "",
+		embedDescriptionPropertyOverride: "",
+		embedThumbnailPropertyOverride: "",
+		embedFieldsPropertyOverride: "",
+		embedImagePropertyOverride: "",
+		embedFooterPropertyOverride: "",
+	},
 };
 
 export const DEFAULT_VALUES: PartialSettings = {
+	version: "1.0.0",
 	discordWebhookURL: [],
 	attachmentsFolder: "/",
 	localSuggestionsLimit: 10,
@@ -51,15 +129,35 @@ export const DEFAULT_VALUES: PartialSettings = {
 	customBotUsername: "",
 	customBotAvatarURL: "",
 	useNoteTitleForEmbed: false,
-	embedTitle: "",
-	embedColor: "",
-	embedURL: "",
-	embedAuthor: "",
-	embedDescription: "",
-	embedThumbnail: "",
-	embedFields: "",
-	embedImage: "",
-	embedFooter: "",
+	embedDefaultValues: {
+		embedDefaultTitle: "",
+		embedDefaultColor: "",
+		embedDefaultURL: "",
+		embedDefaultAuthor: {
+			name: "",
+			iconURL: "",
+			url: "",
+		},
+		embedDefaultDescription: "",
+		embedDefaultThumbnail: "",
+		embedDefaultFields: [],
+		embedDefaultImage: "",
+		embedDefaultFooter: {
+			text: "",
+			iconURL: "",
+		},
+	},
+	embedPropertyOverrides: {
+		embedTitlePropertyOverride: "",
+		embedColorPropertyOverride: "",
+		embedURLPropertyOverride: "",
+		embedAuthorPropertyOverride: "",
+		embedDescriptionPropertyOverride: "",
+		embedThumbnailPropertyOverride: "",
+		embedFieldsPropertyOverride: "",
+		embedImagePropertyOverride: "",
+		embedFooterPropertyOverride: "",
+	},
 };
 
 export default class SettingsTab extends PluginSettingTab {
@@ -86,21 +184,16 @@ export default class SettingsTab extends PluginSettingTab {
 			customBotUsername,
 			customBotAvatarURL,
 			useNoteTitleForEmbed,
-			embedTitle,
-			embedColor,
-			embedURL,
-			embedAuthor,
-			embedDescription,
-			embedThumbnail,
-			embedFields,
-			embedImage,
-			embedFooter,
+			embedDefaultValues,
+			embedPropertyOverrides,
 		} = this.plugin.settings;
 		containerEl.empty();
 
 		this.createHeader("Discord Share", "Share vault contents to Discord.");
 
-		this.createHeader("Discord", "Connection settings for Discord.");
+		//#region Webhook Settings
+
+		this.createHeader("Webhook Settings", "Customize the connection to your Discord webhook.");
 
 		let webhookName: string;
 		let webhookURL: string;
@@ -108,6 +201,7 @@ export default class SettingsTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Discord Webhook URL")
 			.setDesc("Get this value from Discord")
+			.setTooltip("Learn more: https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks")
 			.addText((text) =>
 				text
 					.setPlaceholder("Enter channel name")
@@ -182,7 +276,228 @@ export default class SettingsTab extends PluginSettingTab {
 					)
 			);
 
-		// Embed Settings
+		//#endregion Webhook Settings
+
+		//#region Embed Defaults
+
+		this.createHeader(
+			"Embed Default Values",
+			"Default values to use with Discord embeds."
+		);
+
+		new Setting(containerEl)
+			.setName("Embed Default Title")
+			.setDesc(`The default title for embeds.`)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter the default title for embeds.")
+					.setValue(embedDefaultValues.embedDefaultTitle)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultTitle = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Embed Color")
+			.setDesc(`The default color for embeds.`)
+			.addColorPicker((colComp) => {
+				colComp
+					.setValue(embedDefaultValues.embedDefaultColor)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultColor = val;
+						await this.plugin.saveData(this.plugin.settings);
+					});
+			});
+
+		new Setting(containerEl)
+			.setName("Embed Default URL")
+			.setDesc(`The default URL for embeds.`)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter the default URL for embeds.")
+					.setValue(embedDefaultValues.embedDefaultURL)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultURL = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
+			);
+		
+		//#region Embed Default Author Settings
+		const { embedDefaultAuthor } = embedDefaultValues;
+
+		new Setting(containerEl)
+			.setName("Embed Default Author Name")
+			.setDesc(`The default author name for embeds.`)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter the default author name for embeds.")
+					.setValue(embedDefaultAuthor.name)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultAuthor.name = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
+			);
+		
+		new Setting(containerEl)
+			.setName("Embed Default Author Icon URL")
+			.setDesc(`The default author icon URL for embeds.`)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter the default author icon URL for embeds.")
+					.setValue(embedDefaultAuthor.iconURL)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultAuthor.iconURL = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
+			);
+		
+		new Setting(containerEl)
+			.setName("Embed Default Author URL")
+			.setDesc(`The default author URL for embeds.`)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter the default author URL for embeds.")
+					.setValue(embedDefaultAuthor.url)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultAuthor.url = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
+			);
+		
+		//#endregion Embed Default Author Settings
+
+		new Setting(containerEl)
+			.setName("Embed Default Description")
+			.setDesc(`The default description for embeds.`)
+			.addTextArea((text) =>
+				text
+					.setPlaceholder("Enter the default description for embeds.")
+					.setValue(embedDefaultValues.embedDefaultDescription)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultDescription = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Embed Default Thumbnail")
+			.setDesc(`The default thumbnail for embeds.`)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter the default thumbnail for embeds.")
+					.setValue(embedDefaultValues.embedDefaultThumbnail)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultThumbnail = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
+			);
+		
+		//#region Embed Default Fields Settings
+
+		let fieldName: string;
+		let fieldValue: string;
+		let fieldInline: boolean;
+
+		new Setting(containerEl)
+			.setName("Embed Default Fields")
+			.setDesc("The default fields for embeds.")
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter field name")
+					.onChange(async (val) => (fieldName = val))
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter field value")
+					.onChange(async (val) => (fieldValue = val))
+			)
+			.addToggle((toggle) =>
+				toggle
+					.setValue(fieldInline)
+					.onChange(async (val) => (fieldInline = val))
+			)
+			.addExtraButton((b) => {
+				b.setIcon("plus-with-circle").onClick(async () => {
+					this.plugin.settings.embedDefaultValues.embedDefaultFields.push({
+						name: fieldName,
+						value: fieldValue,
+						inline: fieldInline,
+					});
+					await this.plugin.saveData(this.plugin.settings);
+					this.display();
+				});
+			});
+
+		const defaultFields = containerEl.createDiv("additional");
+		embedDefaultValues.embedDefaultFields.forEach((embedDefaultField) => {
+			new Setting(defaultFields)
+				.setName(`${embedDefaultField.name} (${embedDefaultField.inline ? "Inline" : "Not Inline"})`)
+				.setDesc(embedDefaultField.value)
+				.setClass("default-field-setting")
+				.addExtraButton((b) =>
+					b.setIcon("trash").onClick(async () => {
+						this.plugin.settings.embedDefaultValues.embedDefaultFields = [
+							...embedDefaultValues.embedDefaultFields.filter(
+								(f) => embedDefaultValues.embedDefaultFields.indexOf(f) != embedDefaultValues.embedDefaultFields.indexOf(embedDefaultField)
+							),
+						];
+						await this.plugin.saveData(this.plugin.settings);
+						this.display();
+					})
+				);
+		});
+
+		//#endregion Embed Default Fields Settings
+
+		new Setting(containerEl)
+			.setName("Embed Default Image")
+			.setDesc(`The default image for embeds.`)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter the default image for embeds.")
+					.setValue(embedDefaultValues.embedDefaultImage)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultImage = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
+			);
+
+		//#region Embed Default Footer Settings
+
+		const { embedDefaultFooter } = embedDefaultValues;
+
+		new Setting(containerEl)
+			.setName("Embed Default Footer Text")
+			.setDesc(`The default footer text for embeds.`)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter the default footer text for embeds.")
+					.setValue(embedDefaultFooter.text)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultFooter.text = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Embed Default Footer Icon URL")
+			.setDesc(`The default footer icon URL for embeds.`)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter the default footer icon URL for embeds.")
+					.setValue(embedDefaultFooter.iconURL)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultFooter.iconURL = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
+			);
+
+		//#endregion Embed Default Footer Settings
+
+		//#endregion Embed Defaults
+
+		//#region Embed Settings
 
 		this.createHeader(
 			"Share Current Note to Discord (Properties)",
@@ -200,6 +515,8 @@ export default class SettingsTab extends PluginSettingTab {
 						this.saveSettings({ useNoteTitleForEmbed: val })
 					));
 
+		//#region Embed Property Overrides
+
 		new Setting(containerEl)
 			.setName("Embed Title Property")
 			.setDesc(`Which frontmatter property to use for the embed's title. If left blank, will default to: ${DiscordEmbedTitle}.`)
@@ -208,21 +525,13 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(
 						"Enter the name of the frontmatter to use for title."
 					)
-					.setValue(embedTitle)
-					.onChange(async (val) =>
-						this.saveSettings({ embedTitle: val })
-					));
-
-		new Setting(containerEl)
-			.setName("Embed Color Property")
-			.setDesc(`The default color for embeds.`)
-			.addColorPicker((colComp) => {
-				colComp
-					.setValue(embedColor)
-					.onChange(async (val) =>
-						this.saveSettings({ embedColor: val })
-					);
-			});
+					.setValue(embedPropertyOverrides.embedTitlePropertyOverride)
+					.onChange(async (val) => {
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedTitlePropertyOverride: val,
+						} })
+				}));
 
 		new Setting(containerEl)
 			.setName("Embed URL Property")
@@ -232,9 +541,12 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(
 						"Enter the name of the frontmatter to use for URL."
 					)
-					.setValue(embedURL)
+					.setValue(embedPropertyOverrides.embedURLPropertyOverride)
 					.onChange(async (val) =>
-						this.saveSettings({ embedURL: val })
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedURLPropertyOverride: val,
+						} })
 					));
 
 		new Setting(containerEl)
@@ -245,9 +557,12 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(
 						"Enter the name of the frontmatter to use for author."
 					)
-					.setValue(embedAuthor)
+					.setValue(embedPropertyOverrides.embedAuthorPropertyOverride)
 					.onChange(async (val) =>
-						this.saveSettings({ embedAuthor: val })
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedAuthorPropertyOverride: val
+						} })
 					));
 
 		new Setting(containerEl)
@@ -258,9 +573,12 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(
 						"Enter the name of the frontmatter to use for description."
 					)
-					.setValue(embedDescription)
+					.setValue(embedPropertyOverrides.embedDescriptionPropertyOverride)
 					.onChange(async (val) =>
-						this.saveSettings({ embedDescription: val })
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedDescriptionPropertyOverride: val,
+						} })
 					));
 
 		new Setting(containerEl)
@@ -271,9 +589,12 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(
 						"Enter the name of the frontmatter to use for thumbnail."
 					)
-					.setValue(embedThumbnail)
+					.setValue(embedPropertyOverrides.embedThumbnailPropertyOverride)
 					.onChange(async (val) =>
-						this.saveSettings({ embedThumbnail: val })
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedThumbnailPropertyOverride: val,
+						} })
 					));
 
 		new Setting(containerEl)
@@ -284,9 +605,12 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(
 						"Enter the name of the frontmatter to use for fields."
 					)
-					.setValue(embedFields)
+					.setValue(embedPropertyOverrides.embedFieldsPropertyOverride)
 					.onChange(async (val) =>
-						this.saveSettings({ embedFields: val })
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedFieldsPropertyOverride: val,
+						} })
 					));
 
 		new Setting(containerEl)
@@ -297,9 +621,12 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(
 						"Enter the name of the frontmatter to use for image."
 					)
-					.setValue(embedImage)
+					.setValue(embedPropertyOverrides.embedImagePropertyOverride)
 					.onChange(async (val) =>
-						this.saveSettings({ embedImage: val })
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedImagePropertyOverride: val,
+						} })
 					));
 
 		new Setting(containerEl)
@@ -310,10 +637,17 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(
 						"Enter the name of the frontmatter to use for footer."
 					)
-					.setValue(embedFooter)
+					.setValue(embedPropertyOverrides.embedFooterPropertyOverride)
 					.onChange(async (val) =>
-						this.saveSettings({ embedFooter: val })
+						this.saveSettings({ embedPropertyOverrides: {
+							...embedPropertyOverrides,
+							embedFooterPropertyOverride: val,
+						} })
 					));
+
+		//#endregion Embed Property Overrides
+
+		//#endregion Embed Settings
 
 		// Vault Settings
 

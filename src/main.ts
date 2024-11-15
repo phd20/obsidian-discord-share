@@ -12,8 +12,10 @@ import {
 import SettingsTab, {
 	DEFAULT_VALUES,
 	INITIAL_SETTINGS,
+	IObsoleteSettingsOptions,
 	ISettingsOptions,
 	PartialSettings,
+	SETTINGS_VERSION,
 } from "src/Settings";
 import DiscordHelper from "./discord/DiscordHelper";
 import { DiscordEmbedParams } from "./discord/types";
@@ -28,11 +30,8 @@ export default class DiscordSharePlugin extends Plugin {
 	currentFileContents: string;
 
 	async onload() {
-		this.settings = Object.assign(
-			{},
-			INITIAL_SETTINGS,
-			await this.loadData()
-		);
+		await this.initializeSettings();
+	
 		this.discordHelper = new DiscordHelper(this);
 		this.discordManager = new DiscordManager(this);
 		this.addSettingTab(new SettingsTab(this));
@@ -93,7 +92,7 @@ export default class DiscordSharePlugin extends Plugin {
 						return;
 					}
 					new WebhookURLModal(this, (url: string) => {
-						this.discordManager.shareEmbed(params, url);
+						this.discordManager.shareEmbed(params, url, this.settings);
 					}).open();
 				} else {
 					new Notice("No active file found.");
@@ -108,13 +107,14 @@ export default class DiscordSharePlugin extends Plugin {
 				const discordWebhookURLSet =
 					this.getSettingValue("discordWebhookURL");
 				const discordContent = this.discordHelper.formatObsidianContentForDiscord(this.currentFileContents);
+
 				if (checking) {
 					return !!this.currentFile && (discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0);
 				}
 				if (this.currentFile instanceof TFile) {
 					const params: Partial<DiscordEmbedParams> = {
 						title: this.currentFile.basename,
-						description: discordContent || "",
+						description: discordContent,
 					};
 					if (!params) {
 						new Notice(
@@ -123,7 +123,7 @@ export default class DiscordSharePlugin extends Plugin {
 						return;
 					}
 					new WebhookURLModal(this, (url: string) => {
-						this.discordManager.shareEmbed(params, url);
+						this.discordManager.shareEmbed(params, url, this.settings);
 					}).open();
 				} else {
 					new Notice("No active file found.");
@@ -146,7 +146,7 @@ export default class DiscordSharePlugin extends Plugin {
 					description: discordContent,
 				};
 				new WebhookURLModal(this, (url: string) => {
-					this.discordManager.shareEmbed(params, url);
+					this.discordManager.shareEmbed(params, url, this.settings);
 				}).open();
 			},
 		});
@@ -168,7 +168,7 @@ export default class DiscordSharePlugin extends Plugin {
 								description: discordContent,
 							};
 							new WebhookURLModal(this, (url: string) => {
-								this.discordManager.shareEmbed(params, url);
+								this.discordManager.shareEmbed(params, url, this.settings);
 							}).open();
 						}
 					);
@@ -184,4 +184,62 @@ export default class DiscordSharePlugin extends Plugin {
 	): PartialSettings[K] {
 		return this.settings[key] ?? DEFAULT_VALUES[key];
 	}
+
+	async initializeSettings() {
+		const existingSettings = await this.loadData();
+
+		if (existingSettings.version === SETTINGS_VERSION) {
+			this.loadSettings(existingSettings);
+		} else {
+			this.loadSettings(this.migrateSettings(existingSettings));
+		}
+	}
+
+	loadSettings(data: any) {
+		this.settings = Object.assign({}, INITIAL_SETTINGS, data);
+	}
+
+	migrateSettings(data: Partial<IObsoleteSettingsOptions>): ISettingsOptions {
+		const newSettings: ISettingsOptions = {
+			version: SETTINGS_VERSION,
+			discordWebhookURL: data.discordWebhookURL || [],
+			attachmentsFolder: data.attachmentsFolder || "",
+			localSuggestionsLimit: data.localSuggestionsLimit || 10,
+			showPreviewInLocalModal: data.showPreviewInLocalModal || true,
+			customBotUsername: data.customBotUsername || "",
+			customBotAvatarURL: data.customBotAvatarURL || "",
+			useNoteTitleForEmbed: data.useNoteTitleForEmbed || false,
+			embedDefaultValues: {
+				embedDefaultTitle: "",
+				embedDefaultColor: data.embedColor || "",
+				embedDefaultURL: "",
+				embedDefaultAuthor: {
+					name: "",
+					url: "",
+					iconURL: "",
+				},
+				embedDefaultDescription: "",
+				embedDefaultThumbnail: "",
+				embedDefaultFields: [],
+				embedDefaultImage: "",
+				embedDefaultFooter: {
+					text: "",
+					iconURL: "",
+				},
+			},
+			embedPropertyOverrides: {
+				embedTitlePropertyOverride: data.embedTitle || "",
+				embedColorPropertyOverride: "",
+				embedURLPropertyOverride: data.embedURL || "",
+				embedAuthorPropertyOverride: data.embedAuthor || "",
+				embedDescriptionPropertyOverride: data.embedDescription || "",
+				embedThumbnailPropertyOverride: data.embedThumbnail || "",
+				embedFieldsPropertyOverride: data.embedFields || "",
+				embedImagePropertyOverride: data.embedImage || "",
+				embedFooterPropertyOverride: data.embedFooter || "",
+			},
+		};
+		return newSettings;
+	}
+		
 }

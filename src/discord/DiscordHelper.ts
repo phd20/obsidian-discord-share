@@ -12,8 +12,9 @@ import {
 	DiscordEmbedURL,
 } from "./constants";
 import { DiscordEmbedParams } from "./types";
-import { ISettingsOptions } from "src/Settings";
+import { IEmbedDefaultAuthorSettings, IEmbedDefaultFieldsSettings, IEmbedDefaultFooterSettings, IEmbedPropertyOverrideSettings, ISettingsOptions } from "src/Settings";
 import { removeFrontmatter, replaceLinkAliases, removeWikiLinks, removeObsidianComments } from "../../src/util/markdown"; // TODO - Fix module imports as this is gross.
+import { DiscordEmbedParamsBuilder } from "./DiscordEmbedParamsBuilder";
 
 export default class DiscordHelper {
 	plugin: DiscordSharePlugin;
@@ -39,83 +40,59 @@ export default class DiscordHelper {
 			console.log("No frontmatter found for file.");
 			return;
 		}
-
+	
+		const { embedDefaultValues, embedPropertyOverrides } = settings;
+		const { embedDefaultAuthor, embedDefaultFooter } = embedDefaultValues;
+	
+		const getFrontmatterOrDefaultValue = (
+			key: string,
+			overrideKey: keyof IEmbedPropertyOverrideSettings,
+			defaultValue: string | IEmbedDefaultAuthorSettings | IEmbedDefaultFieldsSettings[] | IEmbedDefaultFooterSettings) => {
+			if (embedPropertyOverrides[overrideKey]) {
+				return frontmatter[embedPropertyOverrides[overrideKey]] || defaultValue;
+			}
+			return frontmatter[key] || defaultValue;
+		};
+	
 		const getValueForParam = (param: string) => {
 			switch (param) {
 				case "color":
-					if (frontmatter[DiscordEmbedColor]) {
-						return frontmatter[DiscordEmbedColor];
-					} else {
-						return settings.embedColor;
-					}
+					return getFrontmatterOrDefaultValue(DiscordEmbedColor, "embedColorPropertyOverride", embedDefaultValues.embedDefaultColor);
 				case "title":
-					if (settings.useNoteTitleForEmbed) {
-						return file.basename;
-					} else if (settings.embedTitle) {
-						return frontmatter[settings.embedTitle];
-					} else {
-						return frontmatter[DiscordEmbedTitle];
-					}
+					return settings.useNoteTitleForEmbed ? file.basename :
+						getFrontmatterOrDefaultValue(DiscordEmbedTitle, "embedTitlePropertyOverride", embedDefaultValues.embedDefaultTitle);
 				case "url":
-					if (settings.embedURL) {
-						return frontmatter[settings.embedURL];
-					} else {
-						return frontmatter[DiscordEmbedURL];
-					}
+					return getFrontmatterOrDefaultValue(DiscordEmbedURL, "embedURLPropertyOverride", embedDefaultValues.embedDefaultURL);
 				case "author":
-					if (settings.embedAuthor) {
-						return frontmatter[settings.embedAuthor];
-					} else {
-						return frontmatter[DiscordEmbedAuthor];
-					}
+					return getFrontmatterOrDefaultValue(DiscordEmbedAuthor, "embedAuthorPropertyOverride", embedDefaultAuthor);
 				case "description":
-					if (settings.embedDescription) {
-						return frontmatter[settings.embedDescription];
-					} else {
-						return frontmatter[DiscordEmbedDescription];
-					}
+					return getFrontmatterOrDefaultValue(DiscordEmbedDescription, "embedDescriptionPropertyOverride", embedDefaultValues.embedDefaultDescription);
 				case "thumbnail":
-					if (settings.embedThumbnail) {
-						return frontmatter[settings.embedThumbnail];
-					} else {
-						return frontmatter[DiscordEmbedThumbnail];
-					}
+					return getFrontmatterOrDefaultValue(DiscordEmbedThumbnail, "embedThumbnailPropertyOverride", embedDefaultValues.embedDefaultThumbnail);
 				case "fields":
-					if (settings.embedFields) {
-						return frontmatter[settings.embedFields];
-					} else {
-						return frontmatter[DiscordEmbedFields];
-					}
+					return getFrontmatterOrDefaultValue(DiscordEmbedFields, "embedFieldsPropertyOverride", embedDefaultValues.embedDefaultFields);
 				case "image":
-					if (settings.embedImage) {
-						return frontmatter[settings.embedImage];
-					} else {
-						return frontmatter[DiscordEmbedImage];
-					}
+					return getFrontmatterOrDefaultValue(DiscordEmbedImage, "embedImagePropertyOverride", embedDefaultValues.embedDefaultImage);
 				case "footer":
-					if (settings.embedFooter) {
-						return frontmatter[settings.embedFooter];
-					} else {
-						return frontmatter[DiscordEmbedFooter];
-					}
+					return getFrontmatterOrDefaultValue(DiscordEmbedFooter, "embedFooterPropertyOverride", embedDefaultFooter);
 				default:
-					break;
+					return null;
 			}
-		}
-
-		const embedParams: DiscordEmbedParams = {
-			color: getValueForParam("color"),
-			title: getValueForParam("title"),
-			url: getValueForParam("url"),
-			author: getValueForParam("author"),
-			description: getValueForParam("description"),
-			thumbnail: getValueForParam("thumbnail"),
-			fields: getValueForParam("fields"),
-			image: getValueForParam("image"),
-			footer: getValueForParam("footer"),
-			file: file,
-		}
-
+		};
+	
+		const embedParams = new DiscordEmbedParamsBuilder()
+			.setColor(getValueForParam("color"))
+			.setTitle(getValueForParam("title"))
+			.setURL(getValueForParam("url"))
+			.setAuthor(getValueForParam("author"))
+			.setDescription(getValueForParam("description"))
+			.setThumbnail(getValueForParam("thumbnail"))
+			.setFields(getValueForParam("fields"))
+			.setImage(getValueForParam("image"))
+			.setFooter(getValueForParam("footer"))
+			.setFile(file)
+			.build();
+	
 		return embedParams;
 	}
 

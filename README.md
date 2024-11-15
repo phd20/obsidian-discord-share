@@ -19,6 +19,7 @@ This plugin allows you to share your Obsidian Vault content to Discord using [di
     - [Example Properties](#example-properties)
   - [Share Selection to Discord](#share-selection-to-discord)
   - [Share Current Note to Discord (Content)](#share-current-note-to-discord-content)
+  - [Updated Settings](#updated-settings)
 
 ## Setup
 1. [Install the Plugin](#install-the-plugin)
@@ -40,6 +41,7 @@ You have two options for installing the plugin.
 - You can turn on/off image previews in the local image search by adjusting the `Show preview images` setting.
 - You can change the number of suggestions to show in the local image search by changing the `Suggestions limit` setting.
 - You can override the default frontmatter properties for embeds (see Example Frontmatter below) to use your own values.
+- You can now add *default values* for all Discord Embeds without having to use note frontmatter.
 
 ## Features
 
@@ -53,7 +55,7 @@ Open the command palette and search for **Share Attachment to Discord**. Click o
 
 Open the command palette and search for **Share Current Note to Discord (Properties)**. Click on it or press `return` on your keyboard. **This option will not show in the menu if you don't have a note open.**
 
-This feature parses YAML frontmatter (properties) for the current note and shares it to Discord in a formatted embed. It's a great way to share prepared information with images and links. You can configure in Settings which frontmatter fields (properties) map to which pieces of a Discord embed or use the defaults below.
+This feature parses YAML frontmatter (properties) for the current note and shares it to Discord in a formatted embed. It's a great way to share prepared information with images and links. You can configure in Settings which frontmatter fields (properties) map to which pieces of a Discord embed or use the defaults below. This command will use Embed Default Values in your settings if no frontmatter value is present for a specified embed property.
 
 ### Example Properties
 
@@ -103,3 +105,7 @@ This feature uses the title and main content body for the current note and share
 - Replaces wiki links (`[[Link]]` becomes `Link`)
 
 Future enhancements are planned for more sophisticated formatting (ex. images, markdown links, etc).
+
+## [Updated Settings](#updated-settings)
+
+Release version `2.5.0` introduced a new data structure for the plugin's settings. It comes with built-in "migration support" to migrate your old settings to the new structure. To activate, simply change *any* setting. You shouldn't notice anything except the Settings tab may look different. If that doesn't work for you, try reinstalling the plugin (⚠️ this will cause you to lose your existing settings).
