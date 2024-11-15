@@ -92,7 +92,7 @@ export default class DiscordSharePlugin extends Plugin {
 						return;
 					}
 					new WebhookURLModal(this, (url: string) => {
-						this.discordManager.shareEmbed(params, url);
+						this.discordManager.shareEmbed(params, url, this.settings);
 					}).open();
 				} else {
 					new Notice("No active file found.");
@@ -107,13 +107,14 @@ export default class DiscordSharePlugin extends Plugin {
 				const discordWebhookURLSet =
 					this.getSettingValue("discordWebhookURL");
 				const discordContent = this.discordHelper.formatObsidianContentForDiscord(this.currentFileContents);
+
 				if (checking) {
 					return !!this.currentFile && (discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0);
 				}
 				if (this.currentFile instanceof TFile) {
 					const params: Partial<DiscordEmbedParams> = {
 						title: this.currentFile.basename,
-						description: discordContent || "",
+						description: discordContent,
 					};
 					if (!params) {
 						new Notice(
@@ -122,7 +123,7 @@ export default class DiscordSharePlugin extends Plugin {
 						return;
 					}
 					new WebhookURLModal(this, (url: string) => {
-						this.discordManager.shareEmbed(params, url);
+						this.discordManager.shareEmbed(params, url, this.settings);
 					}).open();
 				} else {
 					new Notice("No active file found.");
@@ -145,7 +146,7 @@ export default class DiscordSharePlugin extends Plugin {
 					description: discordContent,
 				};
 				new WebhookURLModal(this, (url: string) => {
-					this.discordManager.shareEmbed(params, url);
+					this.discordManager.shareEmbed(params, url, this.settings);
 				}).open();
 			},
 		});
@@ -167,7 +168,7 @@ export default class DiscordSharePlugin extends Plugin {
 								description: discordContent,
 							};
 							new WebhookURLModal(this, (url: string) => {
-								this.discordManager.shareEmbed(params, url);
+								this.discordManager.shareEmbed(params, url, this.settings);
 							}).open();
 						}
 					);
@@ -228,6 +229,7 @@ export default class DiscordSharePlugin extends Plugin {
 			},
 			embedPropertyOverrides: {
 				embedTitlePropertyOverride: data.embedTitle || "",
+				embedColorPropertyOverride: "",
 				embedURLPropertyOverride: data.embedURL || "",
 				embedAuthorPropertyOverride: data.embedAuthor || "",
 				embedDescriptionPropertyOverride: data.embedDescription || "",

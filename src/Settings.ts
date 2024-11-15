@@ -30,25 +30,26 @@ interface IEmbedDefaultValues {
 	embedDefaultFooter: IEmbedDefaultFooterSettings;
 }
 
-interface IEmbedDefaultAuthorSettings {
+export interface IEmbedDefaultAuthorSettings {
 	name: string;
 	iconURL: string;
 	url: string;
 }
 
-interface IEmbedDefaultFieldsSettings {
+export interface IEmbedDefaultFieldsSettings {
 	name: string;
 	value: string;
 	inline: boolean;
 }
 
-interface IEmbedDefaultFooterSettings {
+export interface IEmbedDefaultFooterSettings {
 	text: string;
 	iconURL: string;
 }
 
-interface IEmbedPropertyOverrideSettings {
+export interface IEmbedPropertyOverrideSettings {
 	embedTitlePropertyOverride: string;
+	embedColorPropertyOverride: string;
 	embedURLPropertyOverride: string;
 	embedAuthorPropertyOverride: string;
 	embedDescriptionPropertyOverride: string;
@@ -108,6 +109,7 @@ export const INITIAL_SETTINGS: ISettingsOptions = {
 	},
 	embedPropertyOverrides: {
 		embedTitlePropertyOverride: "",
+		embedColorPropertyOverride: "",
 		embedURLPropertyOverride: "",
 		embedAuthorPropertyOverride: "",
 		embedDescriptionPropertyOverride: "",
@@ -147,6 +149,7 @@ export const DEFAULT_VALUES: PartialSettings = {
 	},
 	embedPropertyOverrides: {
 		embedTitlePropertyOverride: "",
+		embedColorPropertyOverride: "",
 		embedURLPropertyOverride: "",
 		embedAuthorPropertyOverride: "",
 		embedDescriptionPropertyOverride: "",
@@ -289,12 +292,10 @@ export default class SettingsTab extends PluginSettingTab {
 				text
 					.setPlaceholder("Enter the default title for embeds.")
 					.setValue(embedDefaultValues.embedDefaultTitle)
-					.onChange(async (val) =>
-						this.saveSettings({ embedDefaultValues: {
-							...embedDefaultValues,
-							embedDefaultTitle: val,
-						} })
-					)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultTitle = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
 			);
 
 		new Setting(containerEl)
@@ -303,12 +304,10 @@ export default class SettingsTab extends PluginSettingTab {
 			.addColorPicker((colComp) => {
 				colComp
 					.setValue(embedDefaultValues.embedDefaultColor)
-					.onChange(async (val) =>
-						this.saveSettings({ embedDefaultValues: {
-							...embedDefaultValues,
-							embedDefaultColor: val,
-						} })
-					);
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultColor = val;
+						await this.plugin.saveData(this.plugin.settings);
+					});
 			});
 
 		new Setting(containerEl)
@@ -318,12 +317,10 @@ export default class SettingsTab extends PluginSettingTab {
 				text
 					.setPlaceholder("Enter the default URL for embeds.")
 					.setValue(embedDefaultValues.embedDefaultURL)
-					.onChange(async (val) =>
-						this.saveSettings({ embedDefaultValues: {
-							...embedDefaultValues,
-							embedDefaultURL: val,
-						} })
-					)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultURL = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
 			);
 		
 		//#region Embed Default Author Settings
@@ -336,15 +333,10 @@ export default class SettingsTab extends PluginSettingTab {
 				text
 					.setPlaceholder("Enter the default author name for embeds.")
 					.setValue(embedDefaultAuthor.name)
-					.onChange(async (val) =>
-						this.saveSettings({ embedDefaultValues: {
-							...embedDefaultValues,
-							embedDefaultAuthor: {
-								...embedDefaultAuthor,
-								name: val,
-							},
-						} })
-					)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultAuthor.name = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
 			);
 		
 		new Setting(containerEl)
@@ -354,15 +346,10 @@ export default class SettingsTab extends PluginSettingTab {
 				text
 					.setPlaceholder("Enter the default author icon URL for embeds.")
 					.setValue(embedDefaultAuthor.iconURL)
-					.onChange(async (val) =>
-						this.saveSettings({ embedDefaultValues: {
-							...embedDefaultValues,
-							embedDefaultAuthor: {
-								...embedDefaultAuthor,
-								iconURL: val,
-							},
-						} })
-					)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultAuthor.iconURL = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
 			);
 		
 		new Setting(containerEl)
@@ -372,15 +359,10 @@ export default class SettingsTab extends PluginSettingTab {
 				text
 					.setPlaceholder("Enter the default author URL for embeds.")
 					.setValue(embedDefaultAuthor.url)
-					.onChange(async (val) =>
-						this.saveSettings({ embedDefaultValues: {
-							...embedDefaultValues,
-							embedDefaultAuthor: {
-								...embedDefaultAuthor,
-								url: val,
-							},
-						} })
-					)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultAuthor.url = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
 			);
 		
 		//#endregion Embed Default Author Settings
@@ -392,12 +374,10 @@ export default class SettingsTab extends PluginSettingTab {
 				text
 					.setPlaceholder("Enter the default description for embeds.")
 					.setValue(embedDefaultValues.embedDefaultDescription)
-					.onChange(async (val) =>
-						this.saveSettings({ embedDefaultValues: {
-							...embedDefaultValues,
-							embedDefaultDescription: val,
-						} })
-					)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultDescription = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
 			);
 
 		new Setting(containerEl)
@@ -407,12 +387,10 @@ export default class SettingsTab extends PluginSettingTab {
 				text
 					.setPlaceholder("Enter the default thumbnail for embeds.")
 					.setValue(embedDefaultValues.embedDefaultThumbnail)
-					.onChange(async (val) =>
-						this.saveSettings({ embedDefaultValues: {
-							...embedDefaultValues,
-							embedDefaultThumbnail: val,
-						} })
-					)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultThumbnail = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
 			);
 		
 		//#region Embed Default Fields Settings
@@ -441,15 +419,12 @@ export default class SettingsTab extends PluginSettingTab {
 			)
 			.addExtraButton((b) => {
 				b.setIcon("plus-with-circle").onClick(async () => {
-					await this.saveSettings({
-						embedDefaultValues: {
-							...embedDefaultValues,
-							embedDefaultFields: [
-								...embedDefaultValues.embedDefaultFields,
-								{ name: fieldName, value: fieldValue, inline: fieldInline },
-							],
-						}
+					this.plugin.settings.embedDefaultValues.embedDefaultFields.push({
+						name: fieldName,
+						value: fieldValue,
+						inline: fieldInline,
 					});
+					await this.plugin.saveData(this.plugin.settings);
 					this.display();
 				});
 			});
@@ -462,16 +437,12 @@ export default class SettingsTab extends PluginSettingTab {
 				.setClass("default-field-setting")
 				.addExtraButton((b) =>
 					b.setIcon("trash").onClick(async () => {
-						await this.saveSettings({
-							embedDefaultValues: {
-								...embedDefaultValues,
-								embedDefaultFields: [
-									...embedDefaultValues.embedDefaultFields.filter(
-										(f) => embedDefaultValues.embedDefaultFields.indexOf(f) != embedDefaultValues.embedDefaultFields.indexOf(embedDefaultField)
-									),
-								],
-							}
-						});
+						this.plugin.settings.embedDefaultValues.embedDefaultFields = [
+							...embedDefaultValues.embedDefaultFields.filter(
+								(f) => embedDefaultValues.embedDefaultFields.indexOf(f) != embedDefaultValues.embedDefaultFields.indexOf(embedDefaultField)
+							),
+						];
+						await this.plugin.saveData(this.plugin.settings);
 						this.display();
 					})
 				);
@@ -486,12 +457,10 @@ export default class SettingsTab extends PluginSettingTab {
 				text
 					.setPlaceholder("Enter the default image for embeds.")
 					.setValue(embedDefaultValues.embedDefaultImage)
-					.onChange(async (val) =>
-						this.saveSettings({ embedDefaultValues: {
-							...embedDefaultValues,
-							embedDefaultImage: val,
-						} })
-					)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultImage = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
 			);
 
 		//#region Embed Default Footer Settings
@@ -505,15 +474,10 @@ export default class SettingsTab extends PluginSettingTab {
 				text
 					.setPlaceholder("Enter the default footer text for embeds.")
 					.setValue(embedDefaultFooter.text)
-					.onChange(async (val) =>
-						this.saveSettings({ embedDefaultValues: {
-							...embedDefaultValues,
-							embedDefaultFooter: {
-								...embedDefaultFooter,
-								text: val,
-							},
-						} })
-					)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultFooter.text = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
 			);
 
 		new Setting(containerEl)
@@ -523,15 +487,10 @@ export default class SettingsTab extends PluginSettingTab {
 				text
 					.setPlaceholder("Enter the default footer icon URL for embeds.")
 					.setValue(embedDefaultFooter.iconURL)
-					.onChange(async (val) =>
-						this.saveSettings({ embedDefaultValues: {
-							...embedDefaultValues,
-							embedDefaultFooter: {
-								...embedDefaultFooter,
-								iconURL: val,
-							},
-						} })
-					)
+					.onChange(async (val) => {
+						this.plugin.settings.embedDefaultValues.embedDefaultFooter.iconURL = val;
+						await this.plugin.saveData(this.plugin.settings);
+					})
 			);
 
 		//#endregion Embed Default Footer Settings

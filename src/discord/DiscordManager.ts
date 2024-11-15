@@ -8,8 +8,9 @@ import DiscordSharePlugin from "src/main";
 import { FileSystemAdapter, MetadataCache, Notice, Vault } from "obsidian";
 import { DiscordWebhookAvatarURL, DiscordWebhookUsername } from "./constants";
 import DiscordHelper from "./DiscordHelper";
-import { DiscordEmbedParams } from "./types";
+import { DiscordEmbedAuthorParams, DiscordEmbedParams } from "./types";
 import { isValidUrl } from "src/util/url";
+import { ISettingsOptions } from "src/Settings";
 
 export default class DiscordManager {
 	plugin: DiscordSharePlugin;
@@ -46,8 +47,8 @@ export default class DiscordManager {
 							name: fileName,
 						},
 					],
-					username: this.getDiscordBotUsername(),
-					avatarURL: this.getDiscordBotAvatarURL(),
+					username: this.plugin.getSettingValue("customBotUsername") || DiscordWebhookUsername,
+					avatarURL: this.plugin.getSettingValue("customBotAvatarURL") || DiscordWebhookAvatarURL,
 				});
 			new Notice(`Successfully shared ${fileName} to Discord!`);
 		}
@@ -65,42 +66,66 @@ export default class DiscordManager {
 		}
 	}
 
-	public async shareEmbed(params: Partial<DiscordEmbedParams>, url: string) {
+	public async shareEmbed(params: Partial<DiscordEmbedParams>, url: string, settings: ISettingsOptions) {
 		const webhookClient = new WebhookClient({
 			url: url,
 		});
+
+		const { embedDefaultValues } = settings;
+		const { embedDefaultAuthor, embedDefaultFooter } = embedDefaultValues;
 
 		if (!params) {
 			console.log("shareEmbed() called with null or undefined params.");
 		}
 
+		console.log(
+			{
+				params: params.footer,
+				default: embedDefaultValues.embedDefaultFooter,
+			},
+			!embedDefaultValues.embedDefaultFooter
+		);
+
 		const embedBuilder = new EmbedBuilder()
 			.setColor(
-				(params.color as ColorResolvable) ||
-					(this.plugin.getSettingValue(
-						"embedPropertyOverrides"
-					)?.embedColorPropertyOverride as ColorResolvable) ||
-					null
+				(params.color as ColorResolvable) || 
+				(embedDefaultValues.embedDefaultColor as ColorResolvable) ||
+				null
 			)
-			.setTitle(params.title || null)
-			.setURL(params.url || null)
-			.setAuthor(params.author || null)
-			.setDescription(params.description || null)
+			.setTitle(params.title || embedDefaultValues.embedDefaultTitle || null)
+			.setURL(params.url || embedDefaultValues.embedDefaultURL || null)
+			.setAuthor(
+				params.author
+					|| Object.values(embedDefaultAuthor).every((value) => value) ? embedDefaultAuthor : null
+			)
+			.setDescription(params.description || embedDefaultValues.embedDefaultDescription || null)
 			.setImage(
-				params.image && isValidUrl(params.image) ? params.image : null
+				(params.image && isValidUrl(params.image)) ? params.image 
+					: (embedDefaultValues.embedDefaultImage && isValidUrl(embedDefaultValues.embedDefaultImage)) ? embedDefaultValues.embedDefaultImage
+					: null
 			)
-			.setThumbnail(params.thumbnail || null)
-			.setFooter(params.footer || null)
+			.setThumbnail(params.thumbnail || embedDefaultValues.embedDefaultThumbnail || null)
+			.setFooter(
+				params.footer
+					|| Object.values(embedDefaultFooter).every((value) => value) ? embedDefaultFooter : null
+			)
 			.setTimestamp();
 
 		if (params.fields) {
 			embedBuilder.addFields(...params.fields);
+		} else if (embedDefaultValues.embedDefaultFields) {
+			embedBuilder.addFields(...embedDefaultValues.embedDefaultFields);
 		}
 
 		let attachmentFile;
 		if (params.image) {
 			attachmentFile = this.metadata.getFirstLinkpathDest(
 				(params.image && params.image[0][0]) || "", // This is dumb but works for now.
+				params.file?.path || ""
+			);
+		} else if (embedDefaultValues.embedDefaultImage) {
+			attachmentFile = this.metadata.getFirstLinkpathDest(
+				(embedDefaultValues.embedDefaultImage && embedDefaultValues.embedDefaultImage[0][0]) || "", // This is dumb but works for now.
 				params.file?.path || ""
 			);
 		}
@@ -117,8 +142,8 @@ export default class DiscordManager {
 		try {
 			await webhookClient
 					.send({
-						username: this.getDiscordBotUsername(),
-						avatarURL: this.getDiscordBotAvatarURL(),
+						username: settings.customBotUsername || DiscordWebhookUsername,
+						avatarURL: settings.customBotAvatarURL || DiscordWebhookAvatarURL,
 						embeds: [embedBuilder],
 						files: attachment ? [attachment] : [],
 					});
@@ -130,23 +155,5 @@ export default class DiscordManager {
 				`Failed to share embed to Discord. ${error.message}.`
 			);
 		}
-	}
-
-	private getDiscordBotUsername() {
-		const customBotUsername =
-			this.plugin.getSettingValue("customBotUsername");
-		if (customBotUsername) {
-			return customBotUsername;
-		}
-		return DiscordWebhookUsername;
-	}
-
-	private getDiscordBotAvatarURL() {
-		const customBotAvatarURL =
-			this.plugin.getSettingValue("customBotAvatarURL");
-		if (customBotAvatarURL) {
-			return customBotAvatarURL;
-		}
-		return DiscordWebhookAvatarURL;
 	}
 }

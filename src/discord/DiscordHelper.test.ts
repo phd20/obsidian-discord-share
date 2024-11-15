@@ -48,6 +48,7 @@ let mockSettings: ISettingsOptions = {
   },
 	embedPropertyOverrides: {
 		embedTitlePropertyOverride: "",
+    embedColorPropertyOverride: "",
 		embedURLPropertyOverride: "",
 		embedAuthorPropertyOverride: "",
 		embedDescriptionPropertyOverride: "",
@@ -87,6 +88,7 @@ let initSettings: ISettingsOptions = {
   },
 	embedPropertyOverrides: {
 		embedTitlePropertyOverride: "",
+    embedColorPropertyOverride: "",
 		embedURLPropertyOverride: "",
 		embedAuthorPropertyOverride: "",
 		embedDescriptionPropertyOverride: "",
