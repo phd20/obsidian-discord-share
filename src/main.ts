@@ -12,8 +12,10 @@ import {
 import SettingsTab, {
 	DEFAULT_VALUES,
 	INITIAL_SETTINGS,
+	IObsoleteSettingsOptions,
 	ISettingsOptions,
 	PartialSettings,
+	SETTINGS_VERSION,
 } from "src/Settings";
 import DiscordHelper from "./discord/DiscordHelper";
 import { DiscordEmbedParams } from "./discord/types";
@@ -28,11 +30,8 @@ export default class DiscordSharePlugin extends Plugin {
 	currentFileContents: string;
 
 	async onload() {
-		this.settings = Object.assign(
-			{},
-			INITIAL_SETTINGS,
-			await this.loadData()
-		);
+		await this.initializeSettings();
+	
 		this.discordHelper = new DiscordHelper(this);
 		this.discordManager = new DiscordManager(this);
 		this.addSettingTab(new SettingsTab(this));
@@ -184,4 +183,58 @@ export default class DiscordSharePlugin extends Plugin {
 	): PartialSettings[K] {
 		return this.settings[key] ?? DEFAULT_VALUES[key];
 	}
+
+	async initializeSettings() {
+		const existingSettings = await this.loadData();
+
+		if (existingSettings.version === SETTINGS_VERSION) {
+			this.loadSettings(existingSettings);
+		} else {
+			this.loadSettings(this.migrateSettings(existingSettings));
+		}
+	}
+
+	loadSettings(data: any) {
+		this.settings = Object.assign({}, INITIAL_SETTINGS, data);
+	}
+
+	migrateSettings(data: Partial<IObsoleteSettingsOptions>): ISettingsOptions {
+		const newSettings: ISettingsOptions = {
+			version: SETTINGS_VERSION,
+			discordWebhookURL: data.discordWebhookURL || [],
+			attachmentsFolder: data.attachmentsFolder || "",
+			localSuggestionsLimit: data.localSuggestionsLimit || 10,
+			showPreviewInLocalModal: data.showPreviewInLocalModal || true,
+			customBotUsername: data.customBotUsername || "",
+			customBotAvatarURL: data.customBotAvatarURL || "",
+			useNoteTitleForEmbed: data.useNoteTitleForEmbed || false,
+			embedDefaultValues: {
+				embedDefaultTitle: "",
+				embedDefaultColor: data.embedColor || "",
+				embedDefaultURL: "",
+				embedDefaultAuthor: {
+					name: "",
+					url: "",
+					iconURL: "",
+				},
+				embedDefaultDescription: "",
+				embedDefaultThumbnail: "",
+				embedDefaultFields: [],
+				embedDefaultImage: "",
+				embedDefaultFooter: "",
+			},
+			embedPropertyOverrides: {
+				embedTitlePropertyOverride: data.embedTitle || "",
+				embedURLPropertyOverride: data.embedURL || "",
+				embedAuthorPropertyOverride: data.embedAuthor || "",
+				embedDescriptionPropertyOverride: data.embedDescription || "",
+				embedThumbnailPropertyOverride: data.embedThumbnail || "",
+				embedFieldsPropertyOverride: data.embedFields || "",
+				embedImagePropertyOverride: data.embedImage || "",
+				embedFooterPropertyOverride: data.embedFooter || "",
+			},
+		};
+		return newSettings;
+	}
+		
 }
