@@ -21,15 +21,33 @@ const mockPlugin = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockSettings: ISettingsOptions = {
   discordWebhookURL: [],
+  version: "1.0.0",
 	attachmentsFolder: "",
 	localSuggestionsLimit: 10,
 	showPreviewInLocalModal: true,
 	customBotUsername: "",
 	customBotAvatarURL: "",
 	useNoteTitleForEmbed: false,
+  embedDefaultValues: {
+    embedDefaultColor: "",
+    embedDefaultTitle: "",
+    embedDefaultDescription: "",
+    embedDefaultThumbnail: "",
+    embedDefaultFields: [],
+    embedDefaultImage: "",
+    embedDefaultAuthor: {
+      name: "",
+      iconURL: "",
+      url: "",
+    },
+    embedDefaultFooter: {
+      text: "",
+      iconURL: "",
+    },
+    embedDefaultURL: "",
+  },
 	embedPropertyOverrides: {
 		embedTitlePropertyOverride: "",
-		embedColorPropertyOverride: "",
 		embedURLPropertyOverride: "",
 		embedAuthorPropertyOverride: "",
 		embedDescriptionPropertyOverride: "",
@@ -42,15 +60,33 @@ let mockSettings: ISettingsOptions = {
 
 let initSettings: ISettingsOptions = {
   discordWebhookURL: [],
+  version: "1.0.0",
 	attachmentsFolder: "",
 	localSuggestionsLimit: 10,
 	showPreviewInLocalModal: true,
 	customBotUsername: "",
 	customBotAvatarURL: "",
 	useNoteTitleForEmbed: false,
+  embedDefaultValues: {
+    embedDefaultColor: "",
+    embedDefaultTitle: "",
+    embedDefaultDescription: "",
+    embedDefaultThumbnail: "",
+    embedDefaultFields: [],
+    embedDefaultImage: "",
+    embedDefaultAuthor: {
+      name: "",
+      iconURL: "",
+      url: "",
+    },
+    embedDefaultFooter: {
+      text: "",
+      iconURL: "",
+    },
+    embedDefaultURL: "",
+  },
 	embedPropertyOverrides: {
 		embedTitlePropertyOverride: "",
-		embedColorPropertyOverride: "",
 		embedURLPropertyOverride: "",
 		embedAuthorPropertyOverride: "",
 		embedDescriptionPropertyOverride: "",
@@ -136,7 +172,7 @@ describe('DiscordHelper', () => {
         frontmatter: mockFrontmatter,
       });
 
-      mockSettings.embedPropertyOverrides.embedColorPropertyOverride = "red";
+      mockSettings.embedDefaultValues.embedDefaultColor = "red";
 
       const result = discordHelper.buildDiscordEmbedParamsFromFile(mockFile, mockSettings);
 
@@ -157,7 +193,7 @@ describe('DiscordHelper', () => {
         frontmatter: mockFrontmatter,
       });
 
-      mockSettings.embedPropertyOverrides.embedColorPropertyOverride = "red";
+      mockSettings.embedDefaultValues.embedDefaultColor = "red";
 
       const result = discordHelper.buildDiscordEmbedParamsFromFile(mockFile, mockSettings);
 
@@ -207,7 +243,7 @@ describe('DiscordHelper', () => {
         title: 'overrideTitle',
         url: 'overrideUrl',
         author: 'overrideAuthor',
-        color: '',
+        color: 'red',
         description: 'overrideDescription',
         thumbnail: 'overrideThumbnail',
         fields: 'overrideFields',
