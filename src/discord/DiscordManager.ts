@@ -78,25 +78,18 @@ export default class DiscordManager {
 			console.log("shareEmbed() called with null or undefined params.");
 		}
 
-		console.log(
-			{
-				params: params.footer,
-				default: embedDefaultValues.embedDefaultFooter,
-			},
-			!embedDefaultValues.embedDefaultFooter
-		);
-
 		const embedBuilder = new EmbedBuilder()
 			.setColor(
-				(params.color as ColorResolvable) || 
+				(params.color as ColorResolvable) ||
 				(embedDefaultValues.embedDefaultColor as ColorResolvable) ||
 				null
 			)
 			.setTitle(params.title || embedDefaultValues.embedDefaultTitle || null)
 			.setURL(params.url || embedDefaultValues.embedDefaultURL || null)
 			.setAuthor(
-				params.author
-					|| Object.values(embedDefaultAuthor).every((value) => value) ? embedDefaultAuthor : null
+				params.author ? params.author :
+					Object.values(embedDefaultAuthor).every((value) => value) ? embedDefaultAuthor :
+					null
 			)
 			.setDescription(params.description || embedDefaultValues.embedDefaultDescription || null)
 			.setImage(
@@ -106,8 +99,9 @@ export default class DiscordManager {
 			)
 			.setThumbnail(params.thumbnail || embedDefaultValues.embedDefaultThumbnail || null)
 			.setFooter(
-				params.footer
-					|| Object.values(embedDefaultFooter).every((value) => value) ? embedDefaultFooter : null
+				params.footer ? params.footer :
+					Object.values(embedDefaultFooter).every((value) => value) ? embedDefaultFooter : 
+					null
 			)
 			.setTimestamp();
 
@@ -131,6 +125,7 @@ export default class DiscordManager {
 		}
 
 		let attachment = undefined;
+		
 		if (attachmentFile) {
 			embedBuilder.setImage(`attachment://${attachmentFile.name}`);
 			const attachmentFullPath = this.adapter.getFullPath(
