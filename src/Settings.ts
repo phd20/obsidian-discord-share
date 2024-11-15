@@ -27,7 +27,7 @@ interface IEmbedDefaultValues {
 	embedDefaultThumbnail: string;
 	embedDefaultFields: IEmbedDefaultFieldsSettings[];
 	embedDefaultImage: string;
-	embedDefaultFooter: string;
+	embedDefaultFooter: IEmbedDefaultFooterSettings;
 }
 
 interface IEmbedDefaultAuthorSettings {
@@ -40,6 +40,11 @@ interface IEmbedDefaultFieldsSettings {
 	name: string;
 	value: string;
 	inline: boolean;
+}
+
+interface IEmbedDefaultFooterSettings {
+	text: string;
+	iconURL: string;
 }
 
 interface IEmbedPropertyOverrideSettings {
@@ -96,7 +101,10 @@ export const INITIAL_SETTINGS: ISettingsOptions = {
 		embedDefaultThumbnail: "",
 		embedDefaultFields: [],
 		embedDefaultImage: "",
-		embedDefaultFooter: "",
+		embedDefaultFooter: {
+			text: "",
+			iconURL: "",
+		},
 	},
 	embedPropertyOverrides: {
 		embedTitlePropertyOverride: "",
@@ -132,7 +140,10 @@ export const DEFAULT_VALUES: PartialSettings = {
 		embedDefaultThumbnail: "",
 		embedDefaultFields: [],
 		embedDefaultImage: "",
-		embedDefaultFooter: "",
+		embedDefaultFooter: {
+			text: "",
+			iconURL: "",
+		},
 	},
 	embedPropertyOverrides: {
 		embedTitlePropertyOverride: "",
@@ -467,6 +478,63 @@ export default class SettingsTab extends PluginSettingTab {
 		});
 
 		//#endregion Embed Default Fields Settings
+
+		new Setting(containerEl)
+			.setName("Embed Default Image")
+			.setDesc(`The default image for embeds.`)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter the default image for embeds.")
+					.setValue(embedDefaultValues.embedDefaultImage)
+					.onChange(async (val) =>
+						this.saveSettings({ embedDefaultValues: {
+							...embedDefaultValues,
+							embedDefaultImage: val,
+						} })
+					)
+			);
+
+		//#region Embed Default Footer Settings
+
+		const { embedDefaultFooter } = embedDefaultValues;
+
+		new Setting(containerEl)
+			.setName("Embed Default Footer Text")
+			.setDesc(`The default footer text for embeds.`)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter the default footer text for embeds.")
+					.setValue(embedDefaultFooter.text)
+					.onChange(async (val) =>
+						this.saveSettings({ embedDefaultValues: {
+							...embedDefaultValues,
+							embedDefaultFooter: {
+								...embedDefaultFooter,
+								text: val,
+							},
+						} })
+					)
+			);
+
+		new Setting(containerEl)
+			.setName("Embed Default Footer Icon URL")
+			.setDesc(`The default footer icon URL for embeds.`)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter the default footer icon URL for embeds.")
+					.setValue(embedDefaultFooter.iconURL)
+					.onChange(async (val) =>
+						this.saveSettings({ embedDefaultValues: {
+							...embedDefaultValues,
+							embedDefaultFooter: {
+								...embedDefaultFooter,
+								iconURL: val,
+							},
+						} })
+					)
+			);
+
+		//#endregion Embed Default Footer Settings
 
 		//#endregion Embed Defaults
 

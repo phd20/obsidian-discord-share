@@ -221,7 +221,10 @@ export default class DiscordSharePlugin extends Plugin {
 				embedDefaultThumbnail: "",
 				embedDefaultFields: [],
 				embedDefaultImage: "",
-				embedDefaultFooter: "",
+				embedDefaultFooter: {
+					text: "",
+					iconURL: "",
+				},
 			},
 			embedPropertyOverrides: {
 				embedTitlePropertyOverride: data.embedTitle || "",
