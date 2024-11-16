@@ -19,7 +19,6 @@ import SettingsTab, {
 } from "src/Settings";
 import DiscordHelper from "./discord/DiscordHelper";
 import { DiscordEmbedParams } from "./discord/types";
-import { WebhookURLModal } from "./WebhookURLModal";
 
 export default class DiscordSharePlugin extends Plugin {
 	settings: ISettingsOptions;
@@ -58,14 +57,11 @@ export default class DiscordSharePlugin extends Plugin {
 			id: "discord:share-attachment",
 			name: "Share Attachment to Discord",
 			checkCallback: (checking) => {
-				const discordWebhookURLSet =
-					this.getSettingValue("discordWebhookURL");
+				const discordWebhookURLsSet = this.discordWebhookURLsSet();
 				if (checking) {
-					return (discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0);
+					return (discordWebhookURLsSet > 0);
 				}
-				new WebhookURLModal(this, (url: string) => {
-					new LocalImageModal(this, url).open();
-				}).open();
+				new LocalImageModal(this).open();
 			},
 		});
 
@@ -73,11 +69,10 @@ export default class DiscordSharePlugin extends Plugin {
 			id: "discord:share-current-note-properties",
 			name: "Share Current Note to Discord (Properties)",
 			checkCallback: (checking) => {
-				const discordWebhookURLSet =
-					this.getSettingValue("discordWebhookURL");
+				const discordWebhookURLsSet = this.discordWebhookURLsSet();
 				const file = this.workspace.getActiveFile();
 				if (checking) {
-					return !!file && (discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0);
+					return !!file && (discordWebhookURLsSet > 0);
 				}
 				if (file instanceof TFile) {
 					const params =
@@ -91,9 +86,7 @@ export default class DiscordSharePlugin extends Plugin {
 						);
 						return;
 					}
-					new WebhookURLModal(this, (url: string) => {
-						this.discordManager.shareEmbed(params, url, this.settings);
-					}).open();
+					this.discordManager.shareEmbed(params, this.settings);
 				} else {
 					new Notice("No active file found.");
 				}
@@ -104,12 +97,11 @@ export default class DiscordSharePlugin extends Plugin {
 			id: "discord:share-current-note-content",
 			name: "Share Current Note to Discord (Content)",
 			checkCallback: (checking) => {
-				const discordWebhookURLSet =
-					this.getSettingValue("discordWebhookURL");
+				const discordWebhookURLsSet = this.discordWebhookURLsSet();
 				const discordContent = this.discordHelper.formatObsidianContentForDiscord(this.currentFileContents);
 
 				if (checking) {
-					return !!this.currentFile && (discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0);
+					return !!this.currentFile && (discordWebhookURLsSet > 0);
 				}
 				if (this.currentFile instanceof TFile) {
 					const params: Partial<DiscordEmbedParams> = {
@@ -122,9 +114,7 @@ export default class DiscordSharePlugin extends Plugin {
 						);
 						return;
 					}
-					new WebhookURLModal(this, (url: string) => {
-						this.discordManager.shareEmbed(params, url, this.settings);
-					}).open();
+					this.discordManager.shareEmbed(params, this.settings);
 				} else {
 					new Notice("No active file found.");
 				}
@@ -135,29 +125,25 @@ export default class DiscordSharePlugin extends Plugin {
 			id: "discord:share-selection",
 			name: "Share Selection to Discord",
 			editorCheckCallback: (checking: boolean, editor: Editor, view: MarkdownView) => {
-				const discordWebhookURLSet =
-					this.getSettingValue("discordWebhookURL");
+				const discordWebhookURLsSet = this.discordWebhookURLsSet();
 				if (checking) {
-					return (editor.somethingSelected() && (discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0))
+					return (editor.somethingSelected() && (discordWebhookURLsSet > 0));
 				}
 
 				const discordContent = this.discordHelper.formatObsidianContentForDiscord(editor.getSelection().trim());
 				const params: Partial<DiscordEmbedParams> = {
 					description: discordContent,
 				};
-				new WebhookURLModal(this, (url: string) => {
-					this.discordManager.shareEmbed(params, url, this.settings);
-				}).open();
+				this.discordManager.shareEmbed(params, this.settings);
 			},
 		});
 
 		this.registerEvent(
 			this.app.workspace.on("editor-menu", (menu, editor) => {
-				const discordWebhookURLSet =
-					this.getSettingValue("discordWebhookURL");
+				const discordWebhookURLsSet = this.discordWebhookURLsSet();
 				if (!(this.app.vault.adapter instanceof FileSystemAdapter))
 					return;
-				if (!(discordWebhookURLSet !== undefined && discordWebhookURLSet.length > 0) || !editor.somethingSelected())
+				if (!(discordWebhookURLsSet > 0) || !editor.somethingSelected())
 					return;
 				const discordContent = this.discordHelper.formatObsidianContentForDiscord(editor.getSelection().trim());
 
@@ -167,9 +153,7 @@ export default class DiscordSharePlugin extends Plugin {
 							const params: Partial<DiscordEmbedParams> = {
 								description: discordContent,
 							};
-							new WebhookURLModal(this, (url: string) => {
-								this.discordManager.shareEmbed(params, url, this.settings);
-							}).open();
+							this.discordManager.shareEmbed(params, this.settings);
 						}
 					);
 				});
@@ -241,5 +225,12 @@ export default class DiscordSharePlugin extends Plugin {
 		};
 		return newSettings;
 	}
-		
+
+	discordWebhookURLsSet(): number {
+		if (this.settings.discordWebhookURL === undefined || this.settings.discordWebhookURL.length === 0) {
+			return 0;
+		} else {
+			return this.settings.discordWebhookURL.length;
+		}
+	}
 }

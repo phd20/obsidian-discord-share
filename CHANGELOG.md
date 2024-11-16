@@ -1,3 +1,8 @@
+## 2.5.1
+- Bypass WebhookURLModal if only 1 webhook exists in settings
+- Refactors commands to remove WebhookURLModal and centralizes it within the DiscordManager
+- Cleaned up some checking conditions on commands
+
 ## 2.5.0
 - Adds Embed Default Values to the plugin's settings
 - Significant refactoring
