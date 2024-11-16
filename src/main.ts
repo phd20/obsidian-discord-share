@@ -172,10 +172,12 @@ export default class DiscordSharePlugin extends Plugin {
 	async initializeSettings() {
 		const existingSettings = await this.loadData();
 
-		if (existingSettings.version === SETTINGS_VERSION) {
+		if (existingSettings && existingSettings.version === SETTINGS_VERSION) {
 			this.loadSettings(existingSettings);
-		} else {
+		} else if (existingSettings) {
 			this.loadSettings(this.migrateSettings(existingSettings));
+		} else {
+			this.loadSettings(INITIAL_SETTINGS);
 		}
 	}
 
