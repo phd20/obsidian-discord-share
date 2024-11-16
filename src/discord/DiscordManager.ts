@@ -8,9 +8,10 @@ import DiscordSharePlugin from "src/main";
 import { FileSystemAdapter, MetadataCache, Notice, Vault } from "obsidian";
 import { DiscordWebhookAvatarURL, DiscordWebhookUsername } from "./constants";
 import DiscordHelper from "./DiscordHelper";
-import { DiscordEmbedAuthorParams, DiscordEmbedParams } from "./types";
+import { DiscordEmbedParams } from "./types";
 import { isValidUrl } from "src/util/url";
 import { ISettingsOptions } from "src/Settings";
+import { WebhookURLModal } from "src/WebhookURLModal";
 
 export default class DiscordManager {
 	plugin: DiscordSharePlugin;
@@ -30,10 +31,12 @@ export default class DiscordManager {
 
 	public async shareAttachment(
 		filePath: string,
-		fileName: string,
-		url: string
+		fileName: string
 	) {
 		const RequestEntityTooLargeErrorCode = "Request entity too large";
+		const settings = this.plugin.settings;
+
+		const url = await this.getWebhookURL(settings);
 		const webhookClient = new WebhookClient({
 			url: url,
 		});
@@ -66,11 +69,7 @@ export default class DiscordManager {
 		}
 	}
 
-	public async shareEmbed(params: Partial<DiscordEmbedParams>, url: string, settings: ISettingsOptions) {
-		const webhookClient = new WebhookClient({
-			url: url,
-		});
-
+	public async shareEmbed(params: Partial<DiscordEmbedParams>, settings: ISettingsOptions) {
 		const { embedDefaultValues } = settings;
 		const { embedDefaultAuthor, embedDefaultFooter } = embedDefaultValues;
 
@@ -133,6 +132,11 @@ export default class DiscordManager {
 			);
 			attachment = new AttachmentBuilder(attachmentFullPath);
 		}
+		const url = await this.getWebhookURL(settings);
+
+		const webhookClient = new WebhookClient({
+			url: url,
+		});
 
 		try {
 			await webhookClient
@@ -150,5 +154,17 @@ export default class DiscordManager {
 				`Failed to share embed to Discord. ${error.message}.`
 			);
 		}
+	}
+
+	private async getWebhookURL(settings: ISettingsOptions): Promise<string> {
+		return new Promise((resolve) => {
+			if (settings.discordWebhookURL.length > 1) {
+				new WebhookURLModal(this.plugin, (webhookURL) => {
+					resolve(webhookURL);
+				}).open();
+			} else {
+				resolve(settings.discordWebhookURL[0].url);
+			}
+		});
 	}
 }

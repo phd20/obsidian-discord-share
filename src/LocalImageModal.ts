@@ -31,11 +31,9 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 	targetFile: TFile;
 	discordManager: DiscordManager;
 	adapter: FileSystemAdapter;
-	url: string;
 
-	constructor(plugin: DiscordSharePlugin, url: string) {
+	constructor(plugin: DiscordSharePlugin) {
 		super(plugin.app);
-		this.url = url;
 		this.plugin = plugin;
 		this.vault = plugin.app.vault;
 		this.discordManager = plugin.discordManager;
@@ -97,8 +95,7 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 		if (path) {
 			await this.discordManager.shareAttachment(
 				path,
-				image.name,
-				this.url
+				image.name
 			);
 		} else {
 			new Notice("Invalid file path.");
