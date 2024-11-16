@@ -1,3 +1,6 @@
+## 2.5.2
+- Fix the settings migration bug that would prevent fresh installs
+
 ## 2.5.1
 - Bypass WebhookURLModal if only 1 webhook exists in settings
 - Refactors commands to remove WebhookURLModal and centralizes it within the DiscordManager
