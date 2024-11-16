@@ -181,7 +181,7 @@ export default class DiscordSharePlugin extends Plugin {
 		}
 	}
 
-	loadSettings(data: any) {
+	loadSettings(data: unknown) {
 		this.settings = Object.assign({}, INITIAL_SETTINGS, data);
 	}
 

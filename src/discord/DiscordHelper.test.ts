@@ -59,7 +59,7 @@ let mockSettings: ISettingsOptions = {
 	},
 }
 
-let initSettings: ISettingsOptions = {
+const initSettings: ISettingsOptions = {
   discordWebhookURL: [],
   version: "1.0.0",
 	attachmentsFolder: "",

@@ -11,7 +11,6 @@ import {
 	DiscordEmbedTitle,
 	DiscordEmbedURL,
 } from "./constants";
-import { DiscordEmbedParams } from "./types";
 import { IEmbedDefaultAuthorSettings, IEmbedDefaultFieldsSettings, IEmbedDefaultFooterSettings, IEmbedPropertyOverrideSettings, ISettingsOptions } from "src/Settings";
 import { removeFrontmatter, replaceLinkAliases, removeWikiLinks, removeObsidianComments } from "../../src/util/markdown"; // TODO - Fix module imports as this is gross.
 import { DiscordEmbedParamsBuilder } from "./DiscordEmbedParamsBuilder";
