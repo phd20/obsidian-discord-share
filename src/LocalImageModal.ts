@@ -12,18 +12,7 @@ import {
 } from "obsidian";
 import { DEFAULT_VALUES } from "src/Settings";
 
-const IMAGE_FORMATS = [
-	"apng",
-	"avif",
-	"gif",
-	"jpg",
-	"jpeg",
-	"jpe",
-	"jif",
-	"jfif",
-	"png",
-	"webp",
-];
+const IMAGE_FORMATS = DEFAULT_VALUES.attachmentFormats;
 
 export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 	plugin: DiscordSharePlugin;
@@ -46,11 +35,12 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 
 	getItems(): TFile[] {
 		const path = this.plugin.getSettingValue("attachmentsFolder") || "/";
+		const attachmentFormats = this.plugin.getSettingValue("attachmentFormats") || IMAGE_FORMATS || [];
 
 		if (path === DEFAULT_VALUES.attachmentsFolder) {
 			return this.vault
 				.getFiles()
-				.filter((f) => IMAGE_FORMATS.includes(f.extension));
+				.filter((f) => attachmentFormats.includes(f.extension));
 		}
 
 		const folder = this.vault.getAbstractFileByPath(path);
@@ -67,7 +57,7 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 			this.close();
 			return [];
 		}
-		return this.getImagesInFolder(folder);
+		return this.getAttachmentsInFolder(folder, attachmentFormats);
 	}
 
 	getItemText(item: TFile): string {
@@ -103,16 +93,16 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 		}
 	}
 
-	private getImagesInFolder(folder: TFolder): TFile[] {
+	private getAttachmentsInFolder(folder: TFolder, attachmentFormats: string[]): TFile[] {
 		const files: TFile[] = [];
 		folder.children.forEach((abFile) => {
 			if (abFile instanceof TFolder) {
 				if (abFile instanceof TFolder) {
-					files.push(...this.getImagesInFolder(abFile));
+					files.push(...this.getAttachmentsInFolder(abFile, attachmentFormats));
 				}
 			}
 			const file = abFile as TFile;
-			if (IMAGE_FORMATS.includes(file.extension)) {
+			if (attachmentFormats.includes(file.extension)) {
 				files.push(file);
 			}
 		});

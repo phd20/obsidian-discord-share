@@ -9,6 +9,7 @@ export interface ISettingsOptions {
 	version: string;
 	discordWebhookURL: DiscordWebhook[];
 	attachmentsFolder: string;
+	attachmentFormats: string[];
 	localSuggestionsLimit: number;
 	showPreviewInLocalModal: boolean;
 	customBotUsername: string;
@@ -62,6 +63,7 @@ export interface IEmbedPropertyOverrideSettings {
 export interface IObsoleteSettingsOptions {
 	discordWebhookURL: DiscordWebhook[];
 	attachmentsFolder: string;
+	attachmentFormats: string[];
 	localSuggestionsLimit: number;
 	showPreviewInLocalModal: boolean;
 	customBotUsername: string;
@@ -84,6 +86,7 @@ export const INITIAL_SETTINGS: ISettingsOptions = {
 	version: SETTINGS_VERSION,
 	discordWebhookURL: [],
 	attachmentsFolder: "",
+	attachmentFormats: ["apng", "avif", "gif", "jpg", "jpeg", "jpe", "jif", "jfif", "png", "pdf", "webp"],
 	localSuggestionsLimit: 10,
 	showPreviewInLocalModal: true,
 	customBotUsername: "",
@@ -124,6 +127,7 @@ export const DEFAULT_VALUES: PartialSettings = {
 	version: "1.0.0",
 	discordWebhookURL: [],
 	attachmentsFolder: "/",
+	attachmentFormats: ["apng","avif","gif","jpg","jpeg","jpe","jif","jfif","png","pdf","webp"],
 	localSuggestionsLimit: 10,
 	showPreviewInLocalModal: true,
 	customBotUsername: "",
@@ -179,6 +183,7 @@ export default class SettingsTab extends PluginSettingTab {
 		const {
 			discordWebhookURL,
 			attachmentsFolder,
+			attachmentFormats,
 			localSuggestionsLimit,
 			showPreviewInLocalModal,
 			customBotUsername,
@@ -672,6 +677,28 @@ export default class SettingsTab extends PluginSettingTab {
 					.setPlaceholder(DEFAULT_VALUES.attachmentsFolder || "")
 					.onChange(async (val) =>
 						this.saveSettings({ attachmentsFolder: val })
+					)
+			);
+
+		new Setting(containerEl)
+			.setName("Attachments formats")
+			.setDesc(
+				createFragment((frag) => {
+					frag.appendText(
+						"Define the formats you would like to be able to share"
+					);
+					frag.createEl("br");
+					frag.appendText(
+						"If empty, it will search the entire vault for image files"
+					);
+				})
+			)
+			.addText((text) =>
+				text
+					.setValue(attachmentFormats.join(','))
+					.setPlaceholder(DEFAULT_VALUES.attachmentFormats!.join(',') || '')
+					.onChange(async (val: string) =>
+						this.saveSettings({ attachmentFormats: val.trim().split(',') })
 					)
 			);
 

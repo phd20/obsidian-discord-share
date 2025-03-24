@@ -190,6 +190,7 @@ export default class DiscordSharePlugin extends Plugin {
 			version: SETTINGS_VERSION,
 			discordWebhookURL: data.discordWebhookURL || [],
 			attachmentsFolder: data.attachmentsFolder || "",
+			attachmentFormats: data.attachmentFormats || [],
 			localSuggestionsLimit: data.localSuggestionsLimit || 10,
 			showPreviewInLocalModal: data.showPreviewInLocalModal || true,
 			customBotUsername: data.customBotUsername || "",
