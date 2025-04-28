@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-discord-share",
-	"version": "2.5.3",
+	"version": "2.5.4",
 	"description": "This plugin allows you to share your Obsidian Vault content to Discord",
 	"main": "main.js",
 	"scripts": {
