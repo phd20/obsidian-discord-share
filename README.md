@@ -49,7 +49,7 @@ You have two options for installing the plugin.
 
 ## [Share Attachment to Discord](#share-attachment-to-discord)
 
-Open the command palette and search for **Share Attachment to Discord**. Click on it or press `return` on your keyboard. This opens a modal to search your local image files. Search for the file you want and click on it or press `return` on your keyboard.
+Open the command palette and search for **Share Attachment to Discord**. Click on it or press `return` on your keyboard. This opens a modal to search your local image files. Search for the file you want and click on it or press `return` on your keyboard. You can specify a list of attachment types to search for in the plugin's settings.
 
 ## [Share Current Note to Discord (Properties)](#share-current-note-to-discord-properties)
 

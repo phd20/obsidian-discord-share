@@ -59,7 +59,11 @@ export default class DiscordSharePlugin extends Plugin {
 			checkCallback: (checking) => {
 				const discordWebhookURLsSet = this.discordWebhookURLsSet();
 				if (checking) {
-					return (discordWebhookURLsSet > 0);
+					console.log(this.settings.attachmentFormats)
+					return (discordWebhookURLsSet > 0 
+							&& this.settings.attachmentFormats.length > 0
+							&& this.settings.attachmentFormats.indexOf("") === -1
+						);
 				}
 				new LocalImageModal(this).open();
 			},
@@ -190,6 +194,7 @@ export default class DiscordSharePlugin extends Plugin {
 			version: SETTINGS_VERSION,
 			discordWebhookURL: data.discordWebhookURL || [],
 			attachmentsFolder: data.attachmentsFolder || "",
+			attachmentFormats: data.attachmentFormats || [],
 			localSuggestionsLimit: data.localSuggestionsLimit || 10,
 			showPreviewInLocalModal: data.showPreviewInLocalModal || true,
 			customBotUsername: data.customBotUsername || "",
