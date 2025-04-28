@@ -685,12 +685,9 @@ export default class SettingsTab extends PluginSettingTab {
 			.setDesc(
 				createFragment((frag) => {
 					frag.appendText(
-						"Define the formats you would like to be able to share"
+						"Define the attachment formats you would like to be able to share"
 					);
 					frag.createEl("br");
-					frag.appendText(
-						"If empty, it will search the entire vault for image files"
-					);
 				})
 			)
 			.addText((text) =>
