@@ -2,7 +2,7 @@
 
 ![Obsidian Discord](https://user-images.githubusercontent.com/33853403/200464422-a66e62ee-08c9-4e75-bdc2-9bd585cef2ab.png)
 
-This plugin allows you to share your Obsidian Vault content to Discord using [discord.js](https://discord.js.org/).
+This plugin allows you to share your Obsidian Vault content to Discord via Discord Webhooks.
 
 > [!NOTE]  
 > Neither this plugin nor its authors are associated with Discord. 
@@ -82,7 +82,7 @@ ods-fields: # You can add or remove fields.
     inline: true
 ods-image: https://user-images.githubusercontent.com/33853403/200464422-a66e62ee-08c9-4e75-bdc2-9bd585cef2ab.png # This can be a URL or a link to an image in your vault: [[image.png]]. NOTE: embeds will not properly attach the image from your vault if it has spaces in the name. Example: [[image name.png]]
 ods-footer:
-  text: Build using discord.js
+  text: Powered by Discord Webhooks
   iconURL: 'https://avatars.githubusercontent.com/u/26492485'
 ```
 
