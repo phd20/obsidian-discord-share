@@ -7,9 +7,6 @@ import { isValidUrl } from "src/util/url";
 import { ISettingsOptions } from "src/Settings";
 import { WebhookURLModal } from "src/WebhookURLModal";
 
-// Discord embed color type (hex string or number)
-type DiscordColor = string | number;
-
 // Discord embed field interface
 interface DiscordEmbedField {
 	name: string;
@@ -71,7 +68,6 @@ export default class DiscordManager {
 		filePath: string,
 		fileName: string
 	) {
-		const RequestEntityTooLargeErrorCode = "Request entity too large";
 		const settings = this.plugin.settings;
 
 		const url = await this.getWebhookURL(settings);
@@ -126,7 +122,7 @@ export default class DiscordManager {
 
 			new Notice(`Successfully shared ${fileName} to Discord!`);
 		}
-		catch (error: any) {
+		catch (error) {
 			if (error && (error.message.includes("Request entity too large") || error.message.includes("413"))) {
 				new Notice(
 					`Failed to share ${fileName} to Discord. Attachments must be smaller than 8MB.`
@@ -274,7 +270,7 @@ export default class DiscordManager {
 
 			new Notice(`Successfully shared embed to Discord!`);
 		}
-		catch (error: any) {
+		catch (error) {
 			console.log(error);
 			new Notice(
 				`Failed to share embed to Discord. ${error.message}.`
@@ -298,7 +294,7 @@ export default class DiscordManager {
 	 * Convert color to Discord-compatible number format
 	 * Accepts hex strings (with or without #) or numbers
 	 */
-	private convertColorToNumber(color: any): number | undefined {
+	private convertColorToNumber(color: number | string | undefined): number | undefined {
 		if (typeof color === 'number') {
 			return color;
 		}
