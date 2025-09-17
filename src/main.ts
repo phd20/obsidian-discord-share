@@ -107,6 +107,7 @@ export default class DiscordSharePlugin extends Plugin {
 				if (checking) {
 					return !!this.currentFile && (discordWebhookURLsSet > 0);
 				}
+
 				if (this.currentFile instanceof TFile) {
 					const params: Partial<DiscordEmbedParams> = {
 						title: this.currentFile.basename,
