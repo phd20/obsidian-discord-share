@@ -1,5 +1,5 @@
 import DiscordSharePlugin from "src/main";
-import { FileSystemAdapter, MetadataCache, Notice, TFile, Vault } from "obsidian";
+import { FileSystemAdapter, MetadataCache, Notice, TAbstractFile, TFile, Vault } from "obsidian";
 import { DiscordWebhookAvatarURL, DiscordWebhookUsername } from "./constants";
 import DiscordHelper from "./DiscordHelper";
 import { DiscordEmbedParams } from "./types";
@@ -74,9 +74,21 @@ export default class DiscordManager {
 
 		try {
 			let fileBuffer: ArrayBuffer;
+			let file: TAbstractFile | null = null;
 			
-			// First try to find the file in the vault using the path as-is
-			let file = this.vault.getAbstractFileByPath(filePath);
+			// First try to find the file in the vault using the path as-is (for relative paths)
+			file = this.vault.getAbstractFileByPath(filePath);
+			
+			// If not found and it's an absolute path, try to convert it to a vault-relative path
+			if (!file && (filePath.startsWith('/') || filePath.includes(':'))) {
+				const vaultBasePath = this.adapter.getBasePath();
+				
+				// Check if the absolute path is within the vault
+				if (filePath.startsWith(vaultBasePath)) {
+					const relativePath = filePath.substring(vaultBasePath.length + 1); // +1 to remove leading slash
+					file = this.vault.getAbstractFileByPath(relativePath);
+				}
+			}
 			
 			// If not found, try treating it as a relative path from attachments
 			if (!file && !filePath.startsWith('attachments/') && filePath.includes('attachments/')) {
@@ -90,7 +102,16 @@ export default class DiscordManager {
 				file = this.vault.getAbstractFileByPath(attachmentPath);
 			}
 			
-			if (file) {
+			// If still not found but we have an absolute path, try using the adapter
+			if (!file && (filePath.startsWith('/') || filePath.includes(':'))) {
+				try {
+					// Try reading the absolute path directly with the adapter
+					fileBuffer = await this.adapter.readBinary(filePath);
+				} catch (adapterError) {
+					console.log("Adapter readBinary failed:", adapterError);
+					throw new Error(`File not found: ${filePath}`);
+				}
+			} else if (file) {
 				fileBuffer = await this.vault.readBinary(file as TFile);
 			} else {
 				throw new Error(`File not found: ${filePath}`);
@@ -294,7 +315,7 @@ export default class DiscordManager {
 	 * Convert color to Discord-compatible number format
 	 * Accepts hex strings (with or without #) or numbers
 	 */
-	private convertColorToNumber(color: number | string | undefined): number | undefined {
+	private convertColorToNumber(color: number | string): number | undefined {
 		if (typeof color === 'number') {
 			return color;
 		}
