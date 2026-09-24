@@ -81,7 +81,8 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 	}
 
 	async onChooseItem(image: TFile) {
-		const path = this.adapter.getFullPath(image.path);
+		// const path = this.adapter.getFullPath(image.path);
+		const path = image.path;
 		if (path) {
 			await this.discordManager.shareAttachment(
 				path,
