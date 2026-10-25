@@ -7,8 +7,6 @@ This plugin allows you to share your Obsidian Vault content to Discord via Disco
 > [!NOTE]  
 > Neither this plugin nor its authors are associated with Discord. 
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C8XS4N)
-
 - [Discord Share Plugin](#discord-share-plugin)
   - [Setup](#setup)
     - [Install the Plugin](#install-the-plugin)
