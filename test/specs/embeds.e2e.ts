@@ -111,6 +111,11 @@ const clickSelectionMenuItem = async (): Promise<void> => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(obsidian.Menu as any).useNativeMenu = false;
 	});
+	// A menu left over from the previous test must be gone before the next one opens, or the click below
+	// can land on a stale item that is being removed (seen on slow CI runners).
+	await browser.waitUntil(async () => (await $$(".menu").length) === 0, {
+		timeoutMsg: "A previous context menu never closed",
+	});
 	const { x, y } = await selectionCenter();
 	if (x < 0) throw new Error("There is no text selection to right-click");
 	await browser
@@ -128,7 +133,21 @@ const clickSelectionMenuItem = async (): Promise<void> => {
 		if ((await item.getText()).trim() === SELECTION_MENU_TITLE) target = item;
 	}
 	if (!target) throw new Error(`Context menu has no "${SELECTION_MENU_TITLE}" item`);
+	// Wait for the menu to stop moving (it animates in), so the click is not lost on a moving item.
+	let lastTop = Number.NaN;
+	await browser.waitUntil(
+		async () => {
+			const { y: top } = await target!.getLocation();
+			const settled = top === lastTop;
+			lastTop = top;
+			return settled;
+		},
+		{ interval: 150, timeoutMsg: "The context menu item never stopped moving" },
+	);
 	await target.click();
+	await browser.waitUntil(async () => (await $$(".menu").length) === 0, {
+		timeoutMsg: "The context menu did not close after choosing the item",
+	});
 };
 
 /**
