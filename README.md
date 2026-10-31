@@ -107,3 +107,42 @@ Future enhancements are planned for more sophisticated formatting (ex. images, m
 ## [Updated Settings](#updated-settings)
 
 Release version `2.5.0` introduced a new data structure for the plugin's settings. It comes with built-in "migration support" to migrate your old settings to the new structure. To activate, simply change *any* setting. You shouldn't notice anything except the Settings tab may look different. If that doesn't work for you, try reinstalling the plugin (⚠️ this will cause you to lose your existing settings).
+
+## Development
+
+Install dependencies with `pnpm install`. `npm run dev` rebuilds `main.js` on change and `npm run build` makes the production build (it also type-checks).
+
+### Unit tests
+
+```
+npm test
+```
+
+Jest, for the helpers under `src/`. `npm run check:webhooks` fails if a Discord webhook URL is committed anywhere in the repository.
+
+### End-to-end tests
+
+```
+npm run test:e2e
+```
+
+Builds the plugin, then runs it in a sandboxed Obsidian (via [wdio-obsidian-service](https://github.com/jesse-r-s-hines/wdio-obsidian-service)) on a copy of the fixture vault in `test/vaults/basic`. The suite never touches your own vaults or Obsidian settings. A local capture server stands in for Discord, so nothing is sent to Discord. Obsidian is downloaded to `.obsidian-cache/` on first use.
+
+- It runs on Obsidian `earliest` (the `minAppVersion` in `manifest.json`) and `latest`. Pick versions with `OBSIDIAN_VERSIONS`, for example `OBSIDIAN_VERSIONS="latest/latest" npm run test:e2e`.
+- `OBSIDIAN_EMULATE_MOBILE=1` runs it with Obsidian's mobile emulation.
+- `WDIO_MAX_INSTANCES` sets how many Obsidian instances run at once (default 1), and `OBSIDIAN_CACHE` moves the download cache.
+- Failure logs and screenshots land in `test/.artifacts/`.
+- CI runs this on macOS, Ubuntu and Windows (`.github/workflows/test.yml`). Windows with Obsidian `earliest` is not run, because the Obsidian window disconnects there for reasons not seen elsewhere.
+
+### Live Discord check
+
+An optional check posts one embed and one small image to a real webhook, to confirm Discord accepts what the plugin sends. It posts real messages, so use a throwaway channel.
+
+1. Copy `.env.test.example` to `.env.test` (it is gitignored) and set `DISCORD_TEST_WEBHOOK_URL` in it.
+2. Run `npm run test:e2e:live`.
+
+Without that variable the live spec is skipped. Note that a plain `npm run test:e2e` also runs the live spec when `.env.test` is present. To skip it, run `DISCORD_TEST_WEBHOOK_URL= npm run test:e2e`. The webhook URL is masked in test output. For CI, `.github/workflows/live.yml` uses a repository secret with the same name and runs only on tags or when started by hand.
+
+### Driving a live Obsidian
+
+`npm run devloop:start` starts a sandboxed, hot-reloading Obsidian with the plugin on a copy of the fixture vault, plus the capture server, so changes can be tried by hand or by an agent through the Obsidian CLI. See `CLAUDE.md` for the prerequisites, the guarded CLI, and where captures land.
