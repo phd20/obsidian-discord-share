@@ -10,6 +10,7 @@
 		"test": "jest",
 		"test:watch": "jest --watch",
 		"test:e2e": "npm run build && wdio run ./wdio.conf.mts",
+		"test:e2e:live": "npm run build && wdio run ./wdio.conf.mts --spec test/specs/live.e2e.ts",
 		"check:webhooks": "node scripts/check-no-webhooks.mjs",
 		"capture-server": "node scripts/capture-server.mjs"
 	},

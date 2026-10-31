@@ -1,0 +1,51 @@
+name: Live Discord check
+
+# Posts one embed and one attachment to a real Discord webhook. Never runs on pull_request:
+# secrets are unavailable to fork PRs, and this should not post to Discord on every push.
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Obsidian downloads
+        uses: actions/cache@v4
+        with:
+          path: .obsidian-cache
+          key: obsidian-live-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: obsidian-live-${{ runner.os }}-
+
+      - name: Require the webhook secret
+        env:
+          DISCORD_TEST_WEBHOOK_URL: ${{ secrets.DISCORD_TEST_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DISCORD_TEST_WEBHOOK_URL" ]; then
+            echo "::error::Repository secret DISCORD_TEST_WEBHOOK_URL is not set; the live check would be skipped."
+            exit 1
+          fi
+
+      - name: Live Discord check (latest Obsidian)
+        env:
+          DISCORD_TEST_WEBHOOK_URL: ${{ secrets.DISCORD_TEST_WEBHOOK_URL }}
+          OBSIDIAN_VERSIONS: latest/latest
+        run: xvfb-run --auto-servernum npm run test:e2e:live

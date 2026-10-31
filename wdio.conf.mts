@@ -1,8 +1,15 @@
 import * as path from "path";
+import { setUpLiveEnv } from "./test/support/liveEnv";
+
+// Loads the gitignored .env.test (DISCORD_TEST_WEBHOOK_URL for the optional live check) and masks
+// the webhook URL in all console output. Runs in the launcher and in every worker.
+setUpLiveEnv(path.resolve(".env.test"));
 
 // Obsidian versions to test, as space-separated "appVersion/installerVersion" pairs.
 // Override with e.g. OBSIDIAN_VERSIONS="latest/latest" for a quick local run.
-const versions: [string, string][] = (process.env.OBSIDIAN_VERSIONS || "earliest/earliest latest/latest")
+// A run aimed at the live spec alone (npm run test:e2e:live) defaults to latest only, so each message is posted once.
+const liveOnly = process.argv.some((arg) => arg.includes("live.e2e"));
+const versions: [string, string][] = (process.env.OBSIDIAN_VERSIONS || (liveOnly ? "latest/latest" : "earliest/earliest latest/latest"))
 	.split(/\s+/)
 	.filter(Boolean)
 	.map((pair) => {
