@@ -130,4 +130,5 @@ jobs:
 
       - name: Report waived failure
         if: failure() && matrix.os == 'windows-latest' && matrix.obsidian == 'earliest'
-        run: echo "::warning title=Waived known failure (ods-acg)::Windows + Obsidian earliest failed. This job is waived: Obsidian's renderer disconnects during embeds.e2e.ts. Check the e2e step logs and the uploaded artifacts."
+        run: |
+          echo "::warning title=Waived known failure (ods-acg)::Windows + Obsidian earliest failed and is waived. Obsidian's renderer disconnects during embeds.e2e.ts. See the e2e step logs and the uploaded artifacts."
