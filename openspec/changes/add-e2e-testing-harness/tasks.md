@@ -22,11 +22,11 @@ Depends on: none. Gates groups 3, 7.
 
 Depends on: none.
 
-- [ ] 2.1 Create `test/vaults/basic` with: a note with full `ods-*` frontmatter, a note with `ods-image: [[b.png]]`, a plain-content note, `attachments/b.png` and `img/nested/b.png` with different bytes, and an oversized `big.png` or a generator for it. No `data.json`.
-- [ ] 2.2 Implement `test/support/captureServer.ts`: bind to `127.0.0.1` on an ephemeral port, record method/path/headers/raw body, parse JSON and multipart (filename, content type, size, parsed `payload_json`), answer CORS preflight, and support a configurable response status/body and a configurable no-CORS mode
-- [ ] 2.3 Add a standalone mode that appends captures to a gitignored JSONL file (for the dev loop)
-- [ ] 2.4 Unit-test the capture server's parsing with Jest, using sample JSON and multipart bodies
-- [ ] 2.5 Add a repository check (script or test) that fails if a Discord webhook URL appears in committed files
+- [x] 2.1 Create `test/vaults/basic` with: a note with full `ods-*` frontmatter, a note with `ods-image: [[b.png]]`, a plain-content note, `attachments/b.png` and `img/nested/b.png` with different bytes, and an oversized `big.png` or a generator for it. No `data.json`.
+- [x] 2.2 Implement `test/support/captureServer.ts`: bind to `127.0.0.1` on an ephemeral port, record method/path/headers/raw body, parse JSON and multipart (filename, content type, size, parsed `payload_json`), answer CORS preflight, and support a configurable response status/body and a configurable no-CORS mode
+- [x] 2.3 Add a standalone mode that appends captures to a gitignored JSONL file (for the dev loop)
+- [x] 2.4 Unit-test the capture server's parsing with Jest, using sample JSON and multipart bodies
+- [x] 2.5 Add a repository check (script or test) that fails if a Discord webhook URL appears in committed files
 
 ## 3. WebdriverIO setup — `ods-37d.3`
 
