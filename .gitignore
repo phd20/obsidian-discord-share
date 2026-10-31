@@ -24,3 +24,7 @@ data.json
 # Logs
 *.log
 yarn-error.log
+
+
+# E2E capture server output (JSONL captures, server-url.txt)
+test/.captures/
