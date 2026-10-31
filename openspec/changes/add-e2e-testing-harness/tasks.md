@@ -75,11 +75,11 @@ Depends on: 4.
 
 Depends on: 1, 2.
 
-- [ ] 7.1 Add npm scripts that start the dev loop: esbuild watch, `obsidian-launcher watch --copy -p . test/vaults/basic`, and the capture server in standalone mode
-- [ ] 7.2 Add a guard script that runs the vault-path check, then forwards the CLI call only if the path is the sandbox copy. On failure or no instance, it exits non-zero with a clear message.
-- [ ] 7.3 Add a dev-loop helper that injects capture-server webhook settings into the running sandbox (through the guard)
-- [ ] 7.4 Document the loop in `CLAUDE.md`: prerequisites (close personal Obsidian, installer ≥ 1.12.7), the start commands, CLI calls only through the guard, where captures and screenshots land, and stopping when the guard refuses
-- [ ] 7.5 Dry run: Claude starts the loop, shares a nested attachment, reads the capture, checks `dev:errors`, and takes a screenshot
+- [x] 7.1 Add npm scripts that start the dev loop: esbuild watch, `obsidian-launcher watch --copy -p . test/vaults/basic`, and the capture server in standalone mode
+- [x] 7.2 Add a guard script that runs the vault-path check, then forwards the CLI call only if the path is the sandbox copy. On failure or no instance, it exits non-zero with a clear message.
+- [x] 7.3 Add a dev-loop helper that injects capture-server webhook settings into the running sandbox (through the guard)
+- [x] 7.4 Document the loop in `CLAUDE.md`: prerequisites (close personal Obsidian, installer ≥ 1.12.7), the start commands, CLI calls only through the guard, where captures and screenshots land, and stopping when the guard refuses
+- [x] 7.5 Dry run: Claude starts the loop, shares a nested attachment, reads the capture, checks `dev:errors`, and takes a screenshot
 
 # Epic 2: requestUrl migration (blocked by Epic 1) — `ods-vq3`
 
