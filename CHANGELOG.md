@@ -1,3 +1,7 @@
+## 2.6.2
+- Fix sharing an attachment from a folder other than the root attachments folder (the wrong file could be shared, or "File not found" shown), notably on Windows. Thanks to Xymok3 (#62)
+- Send webhook requests with Obsidian's `requestUrl` instead of `fetch`, so they are no longer blocked by CORS
+
 ## 2.5.2
 - Fix the settings migration bug that would prevent fresh installs
 
