@@ -89,13 +89,27 @@ const selectionCenter = (): Promise<{ x: number; y: number }> =>
 		return { x: Math.round(rect.left + rect.width / 2), y: Math.round(rect.top + rect.height / 2) };
 	});
 
+/**
+ * Under mobile emulation Obsidian never fires `editor-menu` for a right-click or a long press
+ * (verified on 1.14.5), so the editor context menu cannot be reached; the command path covers
+ * the same handler there. Skips the calling test in that mode only.
+ */
+const skipOnMobile = async (test: Mocha.Context): Promise<void> => {
+	const isMobile = await browser.executeObsidian(({ obsidian }) => obsidian.Platform.isMobile);
+	if (isMobile) test.skip();
+};
+
 /** Right-clicks the selected text in the editor and clicks the plugin's context menu item. */
 const clickSelectionMenuItem = async (): Promise<void> => {
 	// On macOS Obsidian shows native OS menus by default, which WebDriver cannot see or click.
 	// Switch to its DOM-drawn menus (same menu, same editor-menu event, same plugin handler).
-	await browser.executeObsidian(({ app }) => {
+	// Obsidian 1.4.13 reads the preference once at startup into `Menu.useNativeMenu` (the config key
+	// only matters on the next launch), so set that flag too. Newer versions react to the config.
+	await browser.executeObsidian(({ app, obsidian }) => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(app.vault as any).setConfig("nativeMenus", false);
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(obsidian.Menu as any).useNativeMenu = false;
 	});
 	const { x, y } = await selectionCenter();
 	if (x < 0) throw new Error("There is no text selection to right-click");
@@ -314,7 +328,8 @@ describe("Discord Share embeds", () => {
 			};
 		});
 
-		it("through the editor context menu: sends the selected text", async () => {
+		it("through the editor context menu: sends the selected text", async function () {
+			await skipOnMobile(this);
 			await openNote("selection.md");
 			await selectText(PLAIN_SELECTION);
 			await clickSelectionMenuItem();
@@ -325,7 +340,8 @@ describe("Discord Share embeds", () => {
 			await waitForNotice(SUCCESS_NOTICE);
 		});
 
-		it("through the editor context menu: removes Obsidian formatting from the selection", async () => {
+		it("through the editor context menu: removes Obsidian formatting from the selection", async function () {
+			await skipOnMobile(this);
 			await openNote("plain-content.md");
 			await selectText(FORMATTED_SELECTION);
 			await clickSelectionMenuItem();

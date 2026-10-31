@@ -49,6 +49,15 @@ const chooseSuggestion = async (text: string) => {
 	const index = (await suggestionTexts()).indexOf(text);
 	if (index === -1) throw new Error(`suggestion "${text}" not found`);
 	const items = await $$(".modal-container .suggestion-item");
+	// Under mobile emulation the prompt slides in as a drawer, and a click on a moving item is lost
+	// or intercepted, so wait until the item holds still before clicking.
+	let lastTop = Number.NaN;
+	await browser.waitUntil(async () => {
+		const { y } = await items[index].getLocation();
+		const settled = y === lastTop;
+		lastTop = y;
+		return settled;
+	}, { interval: 150, timeoutMsg: `suggestion "${text}" never stopped moving` });
 	await items[index].click();
 };
 
