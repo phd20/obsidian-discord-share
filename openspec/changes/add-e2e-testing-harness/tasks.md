@@ -91,8 +91,8 @@ Depends on: epic 1 complete (groups 4 and 5 passing).
 - [x] 8.2 Migrate the JSON embed path in `shareEmbed` to `requestUrl` with `throw: false`, and run the full e2e suite
 - [x] 8.3 Migrate `shareAttachment` to `requestUrl` with the multipart encoder, keeping the 413 notice, and run the full e2e suite
 - [x] 8.4 Migrate the embed-with-local-image path to `requestUrl` with the multipart encoder, and run the full e2e suite
-- [ ] 8.5 Add an e2e spec for the no-CORS capture-server mode (no CORS headers, `OPTIONS` rejected), and confirm both share types succeed
-- [ ] 8.6 Run the live Discord check locally to confirm Discord accepts the hand-built multipart bodies
+- [x] 8.5 Add an e2e spec for the no-CORS capture-server mode (no CORS headers, `OPTIONS` rejected), and confirm both share types succeed
+- [x] 8.6 Run the live Discord check locally to confirm Discord accepts the hand-built multipart bodies (passed 2026-10-31 on the requestUrl code: embed and attachment both accepted)
 - [ ] 8.7 Confirm no `fetch(` calls remain in `src/`, and the CI matrix is green
 
 ## 9. Close out — `ods-vq3.5`
