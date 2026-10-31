@@ -4,6 +4,7 @@ import { DiscordWebhookAvatarURL, DiscordWebhookUsername } from "./constants";
 import DiscordHelper from "./DiscordHelper";
 import { DiscordEmbedParams } from "./types";
 import { isValidUrl } from "src/util/url";
+import { buildMultipart } from "src/util/multipart";
 import { ISettingsOptions } from "src/Settings";
 import { WebhookURLModal } from "src/WebhookURLModal";
 
@@ -117,28 +118,26 @@ export default class DiscordManager {
 				throw new Error(`File not found: ${filePath}`);
 			}
 			
-			// Create FormData for multipart/form-data request
-			const formData = new FormData();
-			
-			// Add the file as a blob
-			const blob = new Blob([fileBuffer]);
-			formData.append('files[0]', blob, fileName);
-			
-			// Add webhook payload
+			// requestUrl does not accept FormData, so the multipart body is built by hand
 			const payload = {
 				username: this.plugin.getSettingValue("customBotUsername") || DiscordWebhookUsername,
 				avatar_url: this.plugin.getSettingValue("customBotAvatarURL") || DiscordWebhookAvatarURL,
 			};
-			formData.append('payload_json', JSON.stringify(payload));
+			const multipart = buildMultipart(payload, [{ filename: fileName, data: fileBuffer }]);
 
-			const response = await fetch(url, {
+			// requestUrl is not subject to browser CORS rules; throw: false
+			// returns non-2xx responses instead of throwing, so the status
+			// stays explicit in the failure notice.
+			const response = await requestUrl({
+				url,
 				method: 'POST',
-				body: formData,
+				contentType: multipart.contentType,
+				body: multipart.body,
+				throw: false,
 			});
 
-			if (!response.ok) {
-				const errorText = await response.text();
-				throw new Error(`HTTP ${response.status}: ${errorText}`);
+			if (response.status < 200 || response.status >= 300) {
+				throw new Error(`HTTP ${response.status}: ${response.text}`);
 			}
 
 			new Notice(`Successfully shared ${fileName} to Discord!`);
