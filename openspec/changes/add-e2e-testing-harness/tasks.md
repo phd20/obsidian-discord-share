@@ -11,12 +11,12 @@ Tick a group's boxes when its bead closes, and all boxes before `openspec archiv
 
 Depends on: none. Gates groups 3, 7.
 
-- [ ] 1.1 Launch `npx obsidian-launcher launch --copy -p . test/vaults/basic` on latest, and confirm the plugin loads enabled with no trust prompt
-- [ ] 1.2 Confirm whether the Obsidian CLI connects to the sandboxed instance (CLI setting enabled or not), and record the fix (pre-seeded config, or a CDP fallback via `--remote-debugging-port`)
-- [ ] 1.3 Find the plugin handle for runtime settings injection (e.g. `app.plugins.plugins["obsidian-discord-share"]`) and confirm that changing `settings` takes effect without `saveData`
-- [ ] 1.4 Confirm `obsidian-launcher watch` hot-reloads the plugin on rebuild, and whether the fixture vault needs a `.hot-reload` marker
-- [ ] 1.5 Confirm `obsidian eval code="app.vault.adapter.basePath"` reports the sandbox copy's path, and see what the CLI does when no instance is running
-- [ ] 1.6 Write the findings into design.md (open questions resolved, decisions adjusted)
+- [x] 1.1 Launch `npx obsidian-launcher launch --copy -p . test/vaults/basic` on latest, and confirm the plugin loads enabled with no trust prompt
+- [x] 1.2 Confirm whether the Obsidian CLI connects to the sandboxed instance (CLI setting enabled or not), and record the fix (pre-seeded config, or a CDP fallback via `--remote-debugging-port`)
+- [x] 1.3 Find the plugin handle for runtime settings injection (e.g. `app.plugins.plugins["obsidian-discord-share"]`) and confirm that changing `settings` takes effect without `saveData`
+- [x] 1.4 Confirm `obsidian-launcher watch` hot-reloads the plugin on rebuild, and whether the fixture vault needs a `.hot-reload` marker
+- [x] 1.5 Confirm `obsidian eval code="app.vault.adapter.basePath"` reports the sandbox copy's path, and see what the CLI does when no instance is running
+- [x] 1.6 Write the findings into design.md (open questions resolved, decisions adjusted)
 
 ## 2. Fixtures and capture server — `ods-37d.2`
 
