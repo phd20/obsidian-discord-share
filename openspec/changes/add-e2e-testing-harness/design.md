@@ -55,11 +55,13 @@ A small Node HTTP server (`test/support/captureServer.ts`) listens on `127.0.0.1
 ### D4. Settings injected at runtime; fixture vaults have no `data.json`
 Fixture vaults hold notes and attachments only. A test helper sets settings before each test:
 ```
-browser.executeObsidian(({plugins}, url) => {
-  plugins.obsidianDiscordShare.settings.discordWebhookURL = [{description: "test", url}];
+browser.executeObsidian(({app}, url) => {
+  app.plugins.plugins["obsidian-discord-share"].settings.discordWebhookURL = [{description: "test", url}];
 }, captureUrl)
 ```
-(The exact plugin-handle access path is settled in the spike.)
+The handle is `app.plugins.plugins["obsidian-discord-share"]` (confirmed in the spike; use the manifest id, not a camelCased `plugins.*` alias, which is wdio-specific and unverified). Commands are registered as `obsidian-discord-share:discord:share-attachment`, `…:share-current-note-properties`, `…:share-current-note-content`, and `…:share-selection`.
+
+Spike evidence: after mutating `settings.discordWebhookURL` at runtime, `share-current-note-content` POSTed to the new URL, and no `data.json` was written, so injection needs no `saveData`. **Caveat:** settings live only in the plugin instance, so a hot reload (D7) or a plugin disable/enable resets them to defaults. Re-inject after any reload.
 
 This keeps webhook URLs out of git entirely, avoids the `.gitignore` rule on `data.json`, and makes multi-webhook and attachment-format variations a one-liner per test. Settings are not persisted (`saveData` isn't called), so tests don't leak state through the sandbox.
 
@@ -77,14 +79,16 @@ Linux needs a virtual display. The sample plugin's workflow uses `xvfb-run` (or 
 ### D7. Claude dev loop: `obsidian-launcher watch` + Obsidian CLI
 ```
 terminal A: npm run dev                                    (esbuild watch → main.js)
-terminal B: npx obsidian-launcher watch --copy -p . test/vaults/basic
+terminal B: npx obsidian-launcher watch -v latest -i latest --copy -p . test/vaults/basic
 terminal C: capture server in standalone mode → test/.captures/webhooks.jsonl
 Claude:     obsidian eval / command id=… / dev:errors / dev:console / dev:screenshot
 ```
-`watch` installs `pjeby/hot-reload`, so rebuilds reload the plugin without restarting Obsidian. The CLI was chosen over a custom CDP client because it already covers commands, eval, console, errors, DOM, and screenshots, and needs no code from us. The loop is documented in `CLAUDE.md`, with npm scripts that start the pieces.
+`watch` installs `pjeby/hot-reload`, so rebuilds reload the plugin without restarting Obsidian. **Spike-confirmed:** overwriting `main.js` replaced the plugin instance within seconds (Obsidian shows a "Plugin … has been reloaded" notice), with the four commands re-registered once and no duplicates. The launcher writes the `.hotreload` marker into the installed plugin folder itself, so fixture vaults need no marker. `launch` (as opposed to `watch`) does not install hot-reload.
+
+`-i latest` is required: the launcher's default installer is `earliest`, which predates the CLI. The CLI has no PATH entry in a sandbox, so the loop calls the `obsidian-cli` binary inside the launcher's cached installer (`~/.obsidian-cache/obsidian-installer/<platform>/Obsidian-<ver>/Contents/MacOS/obsidian-cli` on macOS), which a `scripts/` wrapper should resolve. `eval`, `command`, `open`, `dev:debug`, `dev:console`, `dev:errors`, and `dev:screenshot` all worked against the sandbox. The CLI was chosen over a custom CDP client because it already covers commands, eval, console, errors, DOM, and screenshots, and needs no code from us. The loop is documented in `CLAUDE.md`, with npm scripts that start the pieces.
 
 ### D8. Vault-path guard before every state-changing CLI call
-The Obsidian CLI talks to "the running instance", and if none is running it launches the default Obsidian, which opens the user's real vault. So before any `command`, `eval`, or other state-changing call, Claude runs `obsidian eval code="app.vault.adapter.basePath"`. It continues only if the path is inside the launcher's sandbox copy (a temp directory, not the user's vault). A failed or missing guard means stop and report, never retry against whatever instance answered. This is wrapped in a script (`scripts/obsidian-guard.mjs` or similar) so it's one call, and `CLAUDE.md` tells Claude never to call the CLI without it.
+The Obsidian CLI talks to a single per-user Unix socket, `~/.obsidian-cli.sock`, bound by whichever Obsidian instance started most recently (see Spike Findings). It cannot be told which instance to use, so the answering instance may be a personal vault or a wdio test instance. Before any `command`, `eval`, or other state-changing call, Claude runs `obsidian eval code="app.vault.adapter.basePath"`. It continues only if the path equals the exact vault copy the dev loop launched (the launcher prints `Vault copied to <path>`; the start script records it in a state file), not merely "some temp directory", because a wdio sandbox is also a temp directory. A failed or missing guard means stop and report, never retry against whatever instance answered. This is wrapped in a script (`scripts/obsidian-guard.mjs` or similar) so it's one call, and `CLAUDE.md` tells Claude never to call the CLI without it.
 
 ### D9. `requestUrl` migration as a separate epic, blocked by the harness
 `requestUrl` isn't subject to CORS and is Obsidian's API for plugin HTTP. It doesn't accept `FormData`, so the two multipart paths build their body by hand:
@@ -105,7 +109,8 @@ Each `tasks.md` line is then annotated with its bead ID. Work proceeds from `bd 
 
 ## Risks / Trade-offs
 
-- **[Sandbox doesn't have the CLI enabled]** The CLI is a per-app setting, and the sandbox starts with fresh config. → The spike checks this first. Fallbacks: enable it by pre-seeding the sandbox config, or pass `-- --remote-debugging-port=9222` to the launcher and drive over CDP with a small script.
+- **[Sandbox doesn't have the CLI enabled]** Resolved by the spike: the launcher pre-seeds `"cli": true` in the sandbox's `obsidian.json`, so no setup is needed and no CDP fallback is required.
+- **[Overlapping Obsidian instances share one CLI socket]** A second sandboxed instance (e.g. a wdio run) takes over `~/.obsidian-cli.sock`; when it quits, the socket is removed and the first instance is unreachable until restarted. → Do not run wdio while the dev loop is active, or accept that the dev-loop instance must be restarted afterwards. The D8 guard catches the takeover.
 - **[CLI connects to the wrong instance]** → D8 guard, and the user closes personal Obsidian. The guard is a hard stop, not a warning.
 - **[Obsidian 1.4.13 (`earliest`) behaves differently or can't install the plugin cleanly]** → If `earliest` exposes a real incompatibility, that's a finding to raise, either fixing the plugin or bumping `minAppVersion`, not something to silence. The CLI dev loop runs on `latest` only, since the CLI needs installer 1.12.7 or later.
 - **[Flaky UI tests, especially fuzzy-modal selection and notices]** → Prefer `executeObsidianCommand` plus `executeObsidian` for setup, and drive the UI only for the behavior under test. Use wdio waits instead of sleeps, and keep `mocha.retries` at 0 locally so flakiness is visible.
@@ -121,8 +126,18 @@ Each `tasks.md` line is then annotated with its bead ID. Work proceeds from `bd 
 2. Epic 2 replaces the three `fetch()` calls one path at a time (JSON embed → multipart attachment → multipart embed with image). The full suite runs after each.
 3. Rollback: epic 2 is isolated in `DiscordManager.ts` plus the new encoder, so reverting those commits restores `fetch()`. The harness itself has no runtime footprint in the shipped plugin.
 
+## Spike Findings
+
+Run on macOS (arm64), Obsidian app and installer 1.14.5 (`-v latest -i latest`), `obsidian-launcher` 3.4.0, against a throwaway vault, with the user's personal Obsidian closed.
+
+- **Launch (1.1).** `obsidian-launcher launch -v latest -i latest --copy -p . <vault>` loads the built plugin enabled, with no trust prompt and no modal; a screenshot confirmed this. The launcher runs Obsidian with `--user-data-dir=$TMPDIR/obsidian-launcher-config-XXXX` and a vault copy at `$TMPDIR/vault-XXXX`, and writes `community-plugins.json`, `.hotreload`, and `"cli": true` itself. The vault needs no `.obsidian` folder. `main.js` must be built first (`npm run build`). `launch` returns immediately; `watch` stays in the foreground, so background it.
+- **CLI (1.2).** The CLI reaches the sandbox with no extra setup, because the launcher pre-seeds `"cli": true`. It is a separate `obsidian-cli` binary in the installer (`Contents/MacOS/obsidian-cli`), not on PATH in a sandbox. It talks to `~/.obsidian-cli.sock`, a fixed per-user path. `vault=<name>` exists but cannot choose between instances.
+- **Plugin handle (1.3).** See D4.
+- **Hot reload (1.4).** See D7. `watch` installs `hot-reload` and enables it in the sandbox vault; no marker is needed in fixtures.
+- **Sandbox path and no-instance behavior (1.5).** `eval code="app.vault.adapter.basePath"` returns the sandbox vault copy, e.g. `/var/folders/…/T/vault-XXXX`. With no instance bound to the socket, the CLI prints "The CLI is unable to find Obsidian. Please make sure Obsidian is running and try again." and exits 1. It did not launch anything, and the personal Obsidian stayed closed. The installed `/Applications` CLI (1.14.4) has the same strings and no launch logic, but it was deliberately not executed, so "never launches the personal app" is unverified for it. The D8 guard stays mandatory.
+- **Second sandboxed instance.** It takes over the socket: after starting a second sandbox, every CLI call answered from the second vault. When the second instance quit, the socket was deleted and the first instance became unreachable (CLI error above) until restarted. Launching with a different `HOME` did not give the instance its own socket; it bound none, so the CLI was unreachable there. Consequence: CLI beads can overlap with beads that only *edit* code, but must not overlap with beads that run the wdio suite on the same machine, and any CLI session must re-run the guard after starting or stopping another Obsidian.
+- **Not tested.** Windows and Linux CLI behavior, `earliest` (1.4.13), and `emulateMobile`. The CLI needs installer ≥ 1.12.7, so the dev loop is `latest` only (see Risks).
+
 ## Open Questions
 
-- The exact handle for reaching the plugin instance from `executeObsidian` / `eval` (probably `app.plugins.plugins["obsidian-discord-share"]`). Resolved by the spike.
-- Whether `obsidian-launcher watch` preserves a pre-placed `.hot-reload` marker or needs one added to the fixture vault. Resolved by the spike.
 - Whether to keep the capture server's JSONL output under `test/.captures/` (gitignored) or in a temp directory. This is a small call made during implementation.
