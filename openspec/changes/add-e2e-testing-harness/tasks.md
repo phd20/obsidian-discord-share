@@ -48,8 +48,8 @@ Depends on: 2, 3.
 - [ ] 4.3 Share note with a local image: assert the multipart body, `files[0]` named `b.png`, and `embeds[0].image.url = attachment://b.png`
 - [ ] 4.4 Share note content: assert the description has frontmatter, comments, and wikilinks removed
 - [ ] 4.5 Share selection through the command, and through the editor context menu
-- [ ] 4.6 Two webhooks configured: the picker appears, and only the chosen webhook path receives the request
-- [ ] 4.7 Error notices: `413` on an attachment gives the 8MB notice, and `500` on an embed gives a failure notice containing the status
+- [x] 4.6 Two webhooks configured: the picker appears, and only the chosen webhook path receives the request
+- [x] 4.7 Error notices: `413` on an attachment gives the 8MB notice, and `500` on an embed gives a failure notice containing the status
 - [ ] 4.8 Run the full suite locally on `earliest` and `latest`, and file beads for any real incompatibilities found on `earliest` instead of skipping them
 
 ## 5. CI workflow — `ods-37d.8`
