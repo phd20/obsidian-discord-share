@@ -109,6 +109,7 @@ Each `tasks.md` line is then annotated with its bead ID. Work proceeds from `bd 
 
 ## Risks / Trade-offs
 
+- **[Windows + `earliest` renderer disconnects (waived)]** On `windows-latest` with Obsidian 1.4.13 the Obsidian window dies during `embeds.e2e.ts` (`disconnected: not connected to DevTools`), at a different test each run. Not reproducible on macOS; all other jobs pass. The job is waived in CI (`continue-on-error`, with a warning annotation) at the maintainer's request on 2026-10-31, so the "earliest on every OS" guarantee does not hold on Windows until `ods-acg` is resolved. Options: split the embeds spec so each file gets a fresh Obsidian, `specFileRetries`, bump `minAppVersion`, or drop the entry.
 - **[Sandbox doesn't have the CLI enabled]** Resolved by the spike: the launcher pre-seeds `"cli": true` in the sandbox's `obsidian.json`, so no setup is needed and no CDP fallback is required.
 - **[Overlapping Obsidian instances share one CLI socket]** A second sandboxed instance (e.g. a wdio run) takes over `~/.obsidian-cli.sock`; when it quits, the socket is removed and the first instance is unreachable until restarted. → Do not run wdio while the dev loop is active, or accept that the dev-loop instance must be restarted afterwards. The D8 guard catches the takeover.
 - **[CLI connects to the wrong instance]** → D8 guard, and the user closes personal Obsidian. The guard is a hard stop, not a warning.

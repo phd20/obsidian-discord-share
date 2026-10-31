@@ -58,7 +58,7 @@ The suite SHALL include e2e specs for these flows. Each one asserts on the captu
 - **THEN** the request is received only at the second webhook's path
 
 ### Requirement: Suite runs in CI across platforms and Obsidian versions
-A GitHub Actions workflow SHALL run the suite on pushes to `master` and on pull requests, on macOS, Windows, and Linux. Each runs Obsidian `earliest` (the manifest `minAppVersion`) and `latest`, and Linux also runs a mobile-emulation configuration. Downloaded Obsidian versions SHALL be cached between runs.
+A GitHub Actions workflow SHALL run the suite on pushes to `master` and on pull requests, on macOS, Windows, and Linux. Each runs Obsidian `earliest` (the manifest `minAppVersion`) and `latest`, and Linux also runs a mobile-emulation configuration. Downloaded Obsidian versions SHALL be cached between runs. Known exception: the Windows + `earliest` job is waived (it runs, but its failure does not fail the workflow) while its renderer-disconnect failure is investigated (bead `ods-acg`).
 
 #### Scenario: Windows regression caught in CI
 - **WHEN** a change breaks attachment path resolution only on Windows

@@ -19,6 +19,10 @@ jobs:
     name: e2e (${{ matrix.os }}, Obsidian ${{ matrix.obsidian }}, ${{ matrix.variant }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
+    # Known failure, waived by the maintainer: on Windows with Obsidian earliest (1.4.13) the Obsidian
+    # window dies during embeds.e2e.ts (bead ods-acg). The job still runs and its failure is reported
+    # as a warning below, but it does not fail the workflow. Remove this line when ods-acg is resolved.
+    continue-on-error: ${{ matrix.os == 'windows-latest' && matrix.obsidian == 'earliest' }}
 
     strategy:
       # One failing platform or version must not hide the others.
@@ -123,3 +127,7 @@ jobs:
           include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: Report waived failure
+        if: failure() && matrix.os == 'windows-latest' && matrix.obsidian == 'earliest'
+        run: echo "::warning title=Waived known failure (ods-acg)::Windows + Obsidian earliest failed. This job is waived: Obsidian's renderer disconnects during embeds.e2e.ts. Check the e2e step logs and the uploaded artifacts."
