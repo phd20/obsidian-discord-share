@@ -1,4 +1,6 @@
+import * as fs from "fs";
 import * as path from "path";
+import { browser } from "@wdio/globals";
 import { setUpLiveEnv } from "./test/support/liveEnv";
 
 // Loads the gitignored .env.test (DISCORD_TEST_WEBHOOK_URL for the optional live check) and masks
@@ -23,6 +25,26 @@ const maxInstances = Number(process.env.WDIO_MAX_INSTANCES) || 1;
 // OBSIDIAN_EMULATE_MOBILE=1 runs the selected versions with Obsidian's mobile emulation instead
 // (CI: OBSIDIAN_VERSIONS=latest/latest OBSIDIAN_EMULATE_MOBILE=1).
 const emulateMobile = process.env.OBSIDIAN_EMULATE_MOBILE === "1";
+
+// Failure artifacts (gitignored; CI uploads this directory when a job fails). wdio writes its worker
+// logs to outputDir; failing tests also get a screenshot, and nothing else (no DOM or notice text).
+const artifactsDir = path.resolve("test/.artifacts");
+
+const saveFailureScreenshot = async (spec: string | undefined, title: string) => {
+	try {
+		const dir = path.join(artifactsDir, "screenshots");
+		fs.mkdirSync(dir, { recursive: true });
+		const obsidianOptions = (browser.requestedCapabilities as WebdriverIO.Capabilities)["wdio:obsidianOptions"];
+		const slug = [path.basename(spec || "spec").replace(/\.e2e\.ts$/, ""), obsidianOptions?.appVersion, emulateMobile && "mobile", title]
+			.filter(Boolean)
+			.join("-")
+			.replace(/[^A-Za-z0-9._-]+/g, "_")
+			.slice(0, 150);
+		await browser.saveScreenshot(path.join(dir, `${slug}.png`));
+	} catch (error) {
+		console.warn("Could not save failure screenshot:", (error as Error).message);
+	}
+};
 
 export const config: WebdriverIO.Config = {
 	runner: "local",
@@ -57,4 +79,13 @@ export const config: WebdriverIO.Config = {
 		retries: 0,
 	},
 	logLevel: "warn",
+	outputDir: path.join(artifactsDir, "logs"),
+
+	afterTest: async (test, _context, { passed }) => {
+		if (!passed) await saveFailureScreenshot(test.file, test.title);
+	},
+	// A failing before/after hook fails the suite without running afterTest.
+	afterHook: async (test, _context, { error }) => {
+		if (error) await saveFailureScreenshot(test.file, test.title);
+	},
 };

@@ -112,18 +112,12 @@ jobs:
             npm run test:e2e
           fi
 
-      # wdio writes nothing to disk unless wdio.conf.mts sets `outputDir` (logs) and saves
-      # screenshots in an afterTest hook; the paths below are where that config should write.
-      # Missing paths are ignored so this step never fails the job.
+      # wdio.conf.mts writes worker logs and failure screenshots to test/.artifacts/.
       - name: Upload wdio logs and screenshots
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: e2e-artifacts-${{ matrix.os }}-${{ matrix.obsidian }}-${{ matrix.variant }}
-          path: |
-            test/.artifacts/
-            test/.captures/
-            wdio-*.log
-            logs/
+          path: test/.artifacts/
           if-no-files-found: ignore
           retention-days: 7
