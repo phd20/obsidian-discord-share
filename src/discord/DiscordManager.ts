@@ -1,9 +1,10 @@
 import DiscordSharePlugin from "src/main";
-import { FileSystemAdapter, MetadataCache, Notice, TAbstractFile, TFile, Vault } from "obsidian";
+import { FileSystemAdapter, MetadataCache, Notice, requestUrl, TAbstractFile, TFile, Vault } from "obsidian";
 import { DiscordWebhookAvatarURL, DiscordWebhookUsername } from "./constants";
 import DiscordHelper from "./DiscordHelper";
 import { DiscordEmbedParams } from "./types";
 import { isValidUrl } from "src/util/url";
+import { buildMultipart } from "src/util/multipart";
 import { ISettingsOptions } from "src/Settings";
 import { WebhookURLModal } from "src/WebhookURLModal";
 
@@ -117,28 +118,26 @@ export default class DiscordManager {
 				throw new Error(`File not found: ${filePath}`);
 			}
 			
-			// Create FormData for multipart/form-data request
-			const formData = new FormData();
-			
-			// Add the file as a blob
-			const blob = new Blob([fileBuffer]);
-			formData.append('files[0]', blob, fileName);
-			
-			// Add webhook payload
+			// requestUrl does not accept FormData, so the multipart body is built by hand
 			const payload = {
 				username: this.plugin.getSettingValue("customBotUsername") || DiscordWebhookUsername,
 				avatar_url: this.plugin.getSettingValue("customBotAvatarURL") || DiscordWebhookAvatarURL,
 			};
-			formData.append('payload_json', JSON.stringify(payload));
+			const multipart = buildMultipart(payload, [{ filename: fileName, data: fileBuffer }]);
 
-			const response = await fetch(url, {
+			// requestUrl is not subject to browser CORS rules; throw: false
+			// returns non-2xx responses instead of throwing, so the status
+			// stays explicit in the failure notice.
+			const response = await requestUrl({
+				url,
 				method: 'POST',
-				body: formData,
+				contentType: multipart.contentType,
+				body: multipart.body,
+				throw: false,
 			});
 
-			if (!response.ok) {
-				const errorText = await response.text();
-				throw new Error(`HTTP ${response.status}: ${errorText}`);
+			if (response.status < 200 || response.status >= 300) {
+				throw new Error(`HTTP ${response.status}: ${response.text}`);
 			}
 
 			new Notice(`Successfully shared ${fileName} to Discord!`);
@@ -240,32 +239,28 @@ export default class DiscordManager {
 			let payload: DiscordWebhookPayload;
 			
 			if (attachmentFile) {
-				// If we have an attachment, we need to use FormData
+				// If we have an attachment, we need a multipart body
 				embed.image = { url: `attachment://${attachmentFile.name}` };
-				
+
 				const fileBuffer = await this.adapter.readBinary(attachmentFile.path);
-				const formData = new FormData();
-				
-				// Add the file as a blob
-				const blob = new Blob([fileBuffer]);
-				formData.append('files[0]', blob, attachmentFile.name);
-				
-				// Add webhook payload
+
 				payload = {
 					username: settings.customBotUsername || DiscordWebhookUsername,
 					avatar_url: settings.customBotAvatarURL || DiscordWebhookAvatarURL,
 					embeds: [embed],
 				};
-				formData.append('payload_json', JSON.stringify(payload));
+				const multipart = buildMultipart(payload, [{ filename: attachmentFile.name, data: fileBuffer }]);
 
-				const response = await fetch(url, {
+				const response = await requestUrl({
+					url,
 					method: 'POST',
-					body: formData,
+					contentType: multipart.contentType,
+					body: multipart.body,
+					throw: false,
 				});
 
-				if (!response.ok) {
-					const errorText = await response.text();
-					throw new Error(`HTTP ${response.status}: ${errorText}`);
+				if (response.status < 200 || response.status >= 300) {
+					throw new Error(`HTTP ${response.status}: ${response.text}`);
 				}
 			} else {
 				// No attachment, send as JSON
@@ -275,17 +270,19 @@ export default class DiscordManager {
 					embeds: [embed],
 				};
 
-				const response = await fetch(url, {
+				// requestUrl is not subject to browser CORS rules; throw: false
+				// returns non-2xx responses instead of throwing, so the
+				// status stays explicit in the failure notice.
+				const response = await requestUrl({
+					url,
 					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
+					contentType: 'application/json',
 					body: JSON.stringify(payload),
+					throw: false,
 				});
 
-				if (!response.ok) {
-					const errorText = await response.text();
-					throw new Error(`HTTP ${response.status}: ${errorText}`);
+				if (response.status < 200 || response.status >= 300) {
+					throw new Error(`HTTP ${response.status}: ${response.text}`);
 				}
 			}
 

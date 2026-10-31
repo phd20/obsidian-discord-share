@@ -4,7 +4,7 @@ Obsidian plugin that posts notes, selections and attachments to Discord webhooks
 
 ## Dev loop: drive the plugin in a sandboxed Obsidian
 
-A sandboxed, hot-reloading Obsidian (latest) on a copy of `test/vaults/basic`, plus a capture server standing in for Discord, so nothing reaches Discord. Design: `openspec/changes/add-e2e-testing-harness` (D7, D8).
+A sandboxed, hot-reloading Obsidian (latest) on a copy of `test/vaults/basic`, plus a capture server standing in for Discord, so nothing reaches Discord. Design: `openspec/changes/archive/2026-10-31-add-e2e-testing-harness` (D7, D8).
 
 **Prerequisites**
 - The user's personal Obsidian is closed. The Obsidian CLI talks to one per-user socket (`~/.obsidian-cli.sock`) owned by the Obsidian that started last, so any open instance can answer. `start` refuses if any Obsidian is running and never closes one.
