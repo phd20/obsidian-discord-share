@@ -43,9 +43,9 @@ Depends on: 1.
 
 Depends on: 2, 3.
 
-- [ ] 4.1 Attachment from a nested folder: pick `img/nested/b.png` in the picker, then assert the `files[0]` filename and bytes and the success notice
+- [x] 4.1 Attachment from a nested folder: pick `img/nested/b.png` in the picker, then assert the `files[0]` filename and bytes and the success notice
 - [ ] 4.2 Share note properties: assert the embed title, numeric color, author/footer/fields mapping, and the success notice
-- [ ] 4.3 Share note with a local image: assert the multipart body, `files[0]` named `b.png`, and `embeds[0].image.url = attachment://b.png`
+- [x] 4.3 Share note with a local image: assert the multipart body, `files[0]` named `b.png`, and `embeds[0].image.url = attachment://b.png`
 - [ ] 4.4 Share note content: assert the description has frontmatter, comments, and wikilinks removed
 - [ ] 4.5 Share selection through the command, and through the editor context menu
 - [ ] 4.6 Two webhooks configured: the picker appears, and only the chosen webhook path receives the request
