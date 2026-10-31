@@ -20,5 +20,11 @@
   },
   "include": [
     "**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".claude",
+    "test/specs",
+    "test/support/plugin.ts"
   ]
 }
