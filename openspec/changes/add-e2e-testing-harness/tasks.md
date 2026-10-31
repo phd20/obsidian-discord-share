@@ -32,12 +32,12 @@ Depends on: none.
 
 Depends on: 1.
 
-- [ ] 3.1 Add dev dependencies: `@wdio/cli`, `@wdio/local-runner`, `@wdio/mocha-framework`, `wdio-obsidian-service`, `wdio-obsidian-reporter`, `mocha`, `@types/mocha`
-- [ ] 3.2 Add `wdio.conf.mts`: the `earliest`/`latest` versions from `OBSIDIAN_VERSIONS` (default `earliest/earliest latest/latest`), plus an `emulateMobile` capability, `plugins: ["."]`, `vault: "test/vaults/basic"`, `cacheDir: .obsidian-cache`, `injectGlobals: false`
-- [ ] 3.3 Add `test/tsconfig.json` with wdio and Mocha types, and exclude `test/` from Jest (`testPathIgnorePatterns`) so neither runner picks up the other's files
-- [ ] 3.4 Add `npm run test:e2e` (build, then `wdio run ./wdio.conf.mts`), and add `.obsidian-cache/`, `.env.test`, and the captures directory to `.gitignore`
-- [ ] 3.5 Add `test/support/plugin.ts` helpers: inject settings (webhooks, attachment formats), start/stop/reset the capture server per test, and `resetVault()` in `beforeEach`
-- [ ] 3.6 Add a smoke spec that asserts the plugin is loaded and its four commands are registered
+- [x] 3.1 Add dev dependencies: `@wdio/cli`, `@wdio/local-runner`, `@wdio/mocha-framework`, `wdio-obsidian-service`, `wdio-obsidian-reporter`, `mocha`, `@types/mocha`
+- [x] 3.2 Add `wdio.conf.mts`: the `earliest`/`latest` versions from `OBSIDIAN_VERSIONS` (default `earliest/earliest latest/latest`), plus an `emulateMobile` capability, `plugins: ["."]`, `vault: "test/vaults/basic"`, `cacheDir: .obsidian-cache`, `injectGlobals: false`
+- [x] 3.3 Add `test/tsconfig.json` with wdio and Mocha types, and exclude `test/` from Jest (`testPathIgnorePatterns`) so neither runner picks up the other's files
+- [x] 3.4 Add `npm run test:e2e` (build, then `wdio run ./wdio.conf.mts`), and add `.obsidian-cache/`, `.env.test`, and the captures directory to `.gitignore`
+- [x] 3.5 Add `test/support/plugin.ts` helpers: inject settings (webhooks, attachment formats), start/stop/reset the capture server per test, and `resetVault()` in `beforeEach`
+- [x] 3.6 Add a smoke spec that asserts the plugin is loaded and its four commands are registered
 
 ## 4. E2E specs (current fetch() code) — 4.1/4.3 `ods-37d.4`, 4.2/4.4/4.5 `ods-37d.5`, 4.6/4.7 `ods-37d.6`, 4.8 `ods-37d.7`
 
