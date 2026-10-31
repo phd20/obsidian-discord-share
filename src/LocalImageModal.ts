@@ -2,7 +2,6 @@ import { html } from "common-tags";
 import DiscordManager from "src/discord/DiscordManager";
 import DiscordSharePlugin from "src/main";
 import {
-	FileSystemAdapter,
 	FuzzyMatch,
 	FuzzySuggestModal,
 	Notice,
@@ -19,14 +18,12 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 	vault: Vault;
 	targetFile: TFile;
 	discordManager: DiscordManager;
-	adapter: FileSystemAdapter;
 
 	constructor(plugin: DiscordSharePlugin) {
 		super(plugin.app);
 		this.plugin = plugin;
 		this.vault = plugin.app.vault;
 		this.discordManager = plugin.discordManager;
-		this.adapter = plugin.app.vault.adapter as FileSystemAdapter;
 
 		this.containerEl.addClass("attachment-local-image-modal");
 		this.limit = this.plugin.getSettingValue("localSuggestionsLimit") || 10;
@@ -81,16 +78,8 @@ export default class LocalImageModal extends FuzzySuggestModal<TFile> {
 	}
 
 	async onChooseItem(image: TFile) {
-		const path = this.adapter.getFullPath(image.path);
-		if (path) {
-			await this.discordManager.shareAttachment(
-				path,
-				image.name
-			);
-		} else {
-			new Notice("Invalid file path.");
-			console.log(`Invalid file path: ${path}`);
-		}
+		// Pass the vault-relative path; absolute paths fail to resolve on Windows
+		await this.discordManager.shareAttachment(image.path, image.name);
 	}
 
 	private getAttachmentsInFolder(folder: TFolder, attachmentFormats: string[]): TFile[] {

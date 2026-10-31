@@ -1,0 +1,4 @@
+# Fixture vaults are byte-exact test inputs: no line-ending conversion on any platform
+# (a CRLF checkout on Windows makes the editor text differ from the plugin's file contents).
+test/vaults/** text eol=lf
+test/vaults/**/*.png binary
