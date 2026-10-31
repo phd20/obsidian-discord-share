@@ -119,5 +119,7 @@ jobs:
         with:
           name: e2e-artifacts-${{ matrix.os }}-${{ matrix.obsidian }}-${{ matrix.variant }}
           path: test/.artifacts/
+          # upload-artifact@v4 skips dot-directories unless told otherwise, and this one is ".artifacts".
+          include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7

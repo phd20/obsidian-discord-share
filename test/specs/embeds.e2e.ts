@@ -79,14 +79,17 @@ const waitForNotice = async (expected: string): Promise<void> => {
 	});
 };
 
-/** Viewport coordinates of the middle of the current text selection (Obsidian draws it natively). */
-const selectionCenter = (): Promise<{ x: number; y: number }> =>
+/**
+ * Viewport coordinates just inside the start of the current text selection (Obsidian draws it
+ * natively). The start is used rather than the middle because the middle can fall on a rendered
+ * link, whose right-click behaves differently and varies with the platform's font metrics.
+ */
+const selectionAnchor = (): Promise<{ x: number; y: number }> =>
 	browser.execute(() => {
 		const selection = window.getSelection();
 		if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return { x: -1, y: -1 };
-		const rects = Array.from(selection.getRangeAt(0).getClientRects());
-		const rect = rects[Math.floor(rects.length / 2)] ?? selection.getRangeAt(0).getBoundingClientRect();
-		return { x: Math.round(rect.left + rect.width / 2), y: Math.round(rect.top + rect.height / 2) };
+		const rect = selection.getRangeAt(0).getClientRects()[0] ?? selection.getRangeAt(0).getBoundingClientRect();
+		return { x: Math.round(rect.left + Math.min(4, rect.width / 2)), y: Math.round(rect.top + rect.height / 2) };
 	});
 
 /**
@@ -116,7 +119,7 @@ const clickSelectionMenuItem = async (): Promise<void> => {
 	await browser.waitUntil(async () => (await $$(".menu").length) === 0, {
 		timeoutMsg: "A previous context menu never closed",
 	});
-	const { x, y } = await selectionCenter();
+	const { x, y } = await selectionAnchor();
 	if (x < 0) throw new Error("There is no text selection to right-click");
 	await browser
 		.action("pointer")
