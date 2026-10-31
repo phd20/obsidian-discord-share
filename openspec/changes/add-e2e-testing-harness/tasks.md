@@ -57,10 +57,10 @@ Depends on: 2, 3.
 Depends on: 4.
 
 - [x] 5.1 Add `.github/workflows/test.yml`: on push to `master` and on `pull_request`, run Jest, then build, then the e2e suite
-- [x] 5.2 Matrix: `ubuntu-latest`, `windows-latest`, and `macos-latest` × `earliest`/`latest`, plus `emulateMobile` on Ubuntu only, with Linux under `xvfb-run`
+- [x] 5.2 Matrix: `ubuntu-latest`, `windows-latest`, and `macos-latest` × `earliest`/`latest`, plus `emulateMobile` on Ubuntu only, with Linux under `xvfb-run` (Windows + `earliest` excluded, `ods-acg`)
 - [x] 5.3 Cache `.obsidian-cache`, keyed on the resolved Obsidian versions
 - [x] 5.4 Set a CI-appropriate `WDIO_MAX_INSTANCES`, and upload wdio logs and screenshots as artifacts on failure
-- [ ] 5.5 Confirm all matrix jobs pass on a PR
+- [x] 5.5 Confirm all matrix jobs pass on a PR (6 jobs; Windows + `earliest` was dropped, see design.md and `ods-acg`)
 
 ## 6. Optional live Discord check — `ods-37d.9`
 
