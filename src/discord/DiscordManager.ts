@@ -239,32 +239,28 @@ export default class DiscordManager {
 			let payload: DiscordWebhookPayload;
 			
 			if (attachmentFile) {
-				// If we have an attachment, we need to use FormData
+				// If we have an attachment, we need a multipart body
 				embed.image = { url: `attachment://${attachmentFile.name}` };
-				
+
 				const fileBuffer = await this.adapter.readBinary(attachmentFile.path);
-				const formData = new FormData();
-				
-				// Add the file as a blob
-				const blob = new Blob([fileBuffer]);
-				formData.append('files[0]', blob, attachmentFile.name);
-				
-				// Add webhook payload
+
 				payload = {
 					username: settings.customBotUsername || DiscordWebhookUsername,
 					avatar_url: settings.customBotAvatarURL || DiscordWebhookAvatarURL,
 					embeds: [embed],
 				};
-				formData.append('payload_json', JSON.stringify(payload));
+				const multipart = buildMultipart(payload, [{ filename: attachmentFile.name, data: fileBuffer }]);
 
-				const response = await fetch(url, {
+				const response = await requestUrl({
+					url,
 					method: 'POST',
-					body: formData,
+					contentType: multipart.contentType,
+					body: multipart.body,
+					throw: false,
 				});
 
-				if (!response.ok) {
-					const errorText = await response.text();
-					throw new Error(`HTTP ${response.status}: ${errorText}`);
+				if (response.status < 200 || response.status >= 300) {
+					throw new Error(`HTTP ${response.status}: ${response.text}`);
 				}
 			} else {
 				// No attachment, send as JSON
