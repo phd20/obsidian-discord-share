@@ -116,4 +116,25 @@ describe("Discord Share attachments", () => {
 
 		await expectNotice("Successfully shared embed to Discord!");
 	});
+
+	it("sends a filename with a space and non-ASCII characters intact", async () => {
+		const name = "my pic é 日本.png";
+		const bytes = await readVaultBytes(ROOT_IMAGE);
+		await browser.executeObsidian(async ({ app }, fileName, base64) => {
+			const binary = atob(base64);
+			const data = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+			await app.vault.createBinary(fileName, data.buffer);
+		}, name, bytes.toString("base64"));
+
+		await runCommand("attachment");
+		await pickAttachment(name);
+
+		const [request] = await harness.server.waitForRequests(1);
+		expect(harness.server.requests).toHaveLength(1);
+		const file = filePart(request);
+		expect(file.filename).toBe(name);
+		expect(file.bytes.equals(bytes)).toBe(true);
+
+		await expectNotice(`Successfully shared ${name} to Discord!`);
+	});
 });
