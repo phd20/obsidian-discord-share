@@ -60,6 +60,25 @@ const selectText = async (text: string): Promise<void> => {
 		() => browser.executeObsidian(({ app }) => app.workspace.activeEditor?.editor?.somethingSelected() ?? false),
 		{ timeoutMsg: "Selection did not register in the editor" },
 	);
+	// Setting a selection does not scroll to it. In a small window (CI) the fixture text can sit at the
+	// bottom edge, under the status bar, where a right-click is unreliable. Scroll only when it is
+	// outside the usable band, so short notes behave exactly as before.
+	const inView = (): Promise<boolean> =>
+		browser.execute(() => {
+			const selection = window.getSelection();
+			if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return false;
+			const { top, bottom } = selection.getRangeAt(0).getBoundingClientRect();
+			return top > 40 && bottom < window.innerHeight - 80;
+		});
+	if (!(await inView())) {
+		await browser.executeObsidian(({ app }, needle) => {
+			const editor = app.workspace.activeEditor?.editor;
+			if (!editor) return;
+			const start = editor.getValue().indexOf(needle);
+			editor.scrollIntoView({ from: editor.offsetToPos(start), to: editor.offsetToPos(start + needle.length) }, true);
+		}, text);
+		await browser.waitUntil(inView, { timeoutMsg: "The selection was not scrolled into view" });
+	}
 };
 
 /** Text of every notice currently on screen. */
