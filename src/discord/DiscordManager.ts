@@ -1,5 +1,5 @@
 import DiscordSharePlugin from "src/main";
-import { FileSystemAdapter, MetadataCache, Notice, TAbstractFile, TFile, Vault } from "obsidian";
+import { FileSystemAdapter, MetadataCache, Notice, requestUrl, TAbstractFile, TFile, Vault } from "obsidian";
 import { DiscordWebhookAvatarURL, DiscordWebhookUsername } from "./constants";
 import DiscordHelper from "./DiscordHelper";
 import { DiscordEmbedParams } from "./types";
@@ -275,17 +275,19 @@ export default class DiscordManager {
 					embeds: [embed],
 				};
 
-				const response = await fetch(url, {
+				// requestUrl is not subject to browser CORS rules; throw: false
+				// returns non-2xx responses instead of throwing, so the
+				// status stays explicit in the failure notice.
+				const response = await requestUrl({
+					url,
 					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
+					contentType: 'application/json',
 					body: JSON.stringify(payload),
+					throw: false,
 				});
 
-				if (!response.ok) {
-					const errorText = await response.text();
-					throw new Error(`HTTP ${response.status}: ${errorText}`);
+				if (response.status < 200 || response.status >= 300) {
+					throw new Error(`HTTP ${response.status}: ${response.text}`);
 				}
 			}
 
