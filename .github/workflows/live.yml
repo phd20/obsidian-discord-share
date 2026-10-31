@@ -1,0 +1,65 @@
+name: Live Discord check
+
+# Posts one embed and one attachment to a real Discord webhook. Never runs on pull_request:
+# secrets are unavailable to fork PRs, and this should not post to Discord on every push.
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Without the secret a tag push (which also triggers the release) succeeds and skips the
+      # live steps; a manual run fails, since someone asked for the live check explicitly.
+      - name: Check the webhook secret
+        id: secret
+        env:
+          DISCORD_TEST_WEBHOOK_URL: ${{ secrets.DISCORD_TEST_WEBHOOK_URL }}
+        run: |
+          if [ -n "$DISCORD_TEST_WEBHOOK_URL" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          elif [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "::error::Repository secret DISCORD_TEST_WEBHOOK_URL is not set; the live check would be skipped."
+            exit 1
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Repository secret DISCORD_TEST_WEBHOOK_URL is not set; skipping the live check."
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.secret.outputs.configured == 'true'
+
+      - uses: pnpm/action-setup@v4
+        if: steps.secret.outputs.configured == 'true'
+        with:
+          version: 9.15.9
+
+      - name: Use Node.js
+        if: steps.secret.outputs.configured == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          cache: pnpm
+
+      - name: Install dependencies
+        if: steps.secret.outputs.configured == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Obsidian downloads
+        if: steps.secret.outputs.configured == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .obsidian-cache
+          key: obsidian-live-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: obsidian-live-${{ runner.os }}-
+
+      - name: Live Discord check (latest Obsidian)
+        if: steps.secret.outputs.configured == 'true'
+        env:
+          DISCORD_TEST_WEBHOOK_URL: ${{ secrets.DISCORD_TEST_WEBHOOK_URL }}
+          OBSIDIAN_VERSIONS: latest/latest
+        run: xvfb-run --auto-servernum npm run test:e2e:live

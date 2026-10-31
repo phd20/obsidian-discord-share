@@ -66,10 +66,10 @@ Depends on: 4.
 
 Depends on: 4.
 
-- [ ] 6.1 Add `.env.test.example` with a `DISCORD_TEST_WEBHOOK_URL` placeholder, and load `.env.test` for e2e runs when present
-- [ ] 6.2 Add `test/specs/live.e2e.ts`: send one embed and one attachment to the real webhook, assert 2xx, and skip when the variable is unset
-- [ ] 6.3 Add a URL redactor applied to logs, reporter output, and failure messages, and test that a failing live spec doesn't print the URL
-- [ ] 6.4 Add `npm run test:e2e:live`, and a CI job using the `DISCORD_TEST_WEBHOOK_URL` secret on `workflow_dispatch` and tags only (never `pull_request`)
+- [x] 6.1 Add `.env.test.example` with a `DISCORD_TEST_WEBHOOK_URL` placeholder, and load `.env.test` for e2e runs when present
+- [x] 6.2 Add `test/specs/live.e2e.ts`: send one embed and one attachment to the real webhook, assert 2xx, and skip when the variable is unset
+- [x] 6.3 Add a URL redactor applied to logs, reporter output, and failure messages, and test that a failing live spec doesn't print the URL
+- [x] 6.4 Add `npm run test:e2e:live`, and a CI job using the `DISCORD_TEST_WEBHOOK_URL` secret on `workflow_dispatch` and tags only (never `pull_request`)
 
 ## 7. Claude dev loop — `ods-37d.10`
 
