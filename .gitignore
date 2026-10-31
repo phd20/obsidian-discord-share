@@ -32,3 +32,6 @@ test/.captures/
 # E2E harness: downloaded Obsidian versions and local secrets
 .obsidian-cache/
 .env.test
+
+# E2E failure artifacts (wdio logs, failure screenshots)
+test/.artifacts/

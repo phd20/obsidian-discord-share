@@ -1,0 +1,123 @@
+name: Test
+
+# Jest unit tests plus the wdio-obsidian-service e2e suite. The live Discord check
+# (DISCORD_TEST_WEBHOOK_URL) lives in live.yml, so this workflow never reads secrets.
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: e2e (${{ matrix.os }}, Obsidian ${{ matrix.obsidian }}, ${{ matrix.variant }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    strategy:
+      # One failing platform or version must not hide the others.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        # Passed to wdio.conf.mts as OBSIDIAN_VERSIONS="<v>/<v>" (appVersion/installerVersion).
+        # `earliest` resolves to manifest.json minAppVersion.
+        obsidian: [earliest, latest]
+        variant: [desktop]
+        include:
+          # Mobile emulation on Ubuntu + latest only.
+          - os: ubuntu-latest
+            obsidian: latest
+            variant: mobile
+
+    defaults:
+      run:
+        # Git Bash on Windows, so the same scripts run on every OS.
+        shell: bash
+
+    env:
+      # Exactly one version per job, so each version/OS shows up as its own check.
+      OBSIDIAN_VERSIONS: ${{ matrix.obsidian }}/${{ matrix.obsidian }}
+      OBSIDIAN_EMULATE_MOBILE: ${{ matrix.variant == 'mobile' && '1' || '' }}
+      OBSIDIAN_CACHE: ${{ github.workspace }}/.obsidian-cache
+      # Every wdio worker launches its own Obsidian; one at a time keeps runners stable.
+      WDIO_MAX_INSTANCES: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm 9.15.x: the global pnpm 9.1.2 hangs on this dependency set (see design.md).
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Unit tests (Jest)
+        run: npm test
+
+      # Cache key = OS + the *resolved* app/installer versions, e.g. "obsidian-1.14.5-installer-1.14.5".
+      # `latest` therefore gets a fresh cache entry the day Obsidian ships a release, while an
+      # unchanged version restores .obsidian-cache and skips the download. Resolution uses a
+      # throwaway cacheDir so it does not populate .obsidian-cache before the restore. It needs
+      # network (the version list), which the later download needs anyway. The trade-off versus
+      # keying on the lockfile hash: the lockfile does not change when Obsidian releases, so a
+      # lockfile key would keep serving an old `latest`; a resolved key costs one tiny network
+      # call per job. No restore-keys: restoring a stale prefix would keep old Obsidian builds
+      # in the cache forever.
+      - name: Resolve Obsidian versions
+        id: obsidian
+        run: |
+          key=$(node --input-type=module -e '
+            import { mkdtempSync } from "node:fs";
+            import { tmpdir } from "node:os";
+            import { join } from "node:path";
+            import { parseObsidianVersions } from "wdio-obsidian-service";
+            const cacheDir = mkdtempSync(join(tmpdir(), "obsidian-resolve-"));
+            const resolved = await parseObsidianVersions(process.env.OBSIDIAN_VERSIONS, { cacheDir });
+            console.log(resolved.map(([app, installer]) => `obsidian-${app}-installer-${installer}`).join("_"));
+          ')
+          echo "Resolved: $key"
+          echo "key=$key" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Obsidian downloads
+        uses: actions/cache@v4
+        with:
+          path: .obsidian-cache
+          key: obsidian-cache-${{ runner.os }}-${{ runner.arch }}-${{ steps.obsidian.outputs.key }}
+
+      # The service already adds --no-sandbox for Chrome on Linux; Obsidian only needs a display.
+      - name: Install Xvfb
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+
+      - name: E2E tests
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" npm run test:e2e
+          else
+            npm run test:e2e
+          fi
+
+      # wdio.conf.mts writes worker logs and failure screenshots to test/.artifacts/.
+      - name: Upload wdio logs and screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts-${{ matrix.os }}-${{ matrix.obsidian }}-${{ matrix.variant }}
+          path: test/.artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
