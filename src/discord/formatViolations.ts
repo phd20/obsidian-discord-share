@@ -8,6 +8,8 @@ const n = (value: number): string => value.toLocaleString("en-US");
 const describe = (violation: Violation): string => {
 	const { field, kind, actual, limit } = violation;
 	switch (kind) {
+		case "empty":
+			return "Nothing to share: the embed has no title, description, fields, footer, author or image.";
 		case "count":
 			return `${field}: ${n(actual)} entries; Discord allows ${n(limit)}.`;
 		case "total":

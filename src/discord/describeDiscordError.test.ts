@@ -115,6 +115,41 @@ describe("describeDiscordError", () => {
 		});
 	});
 
+	describe("message shape", () => {
+		it("explains Discord's embed byte limit", () => {
+			const { status, body } = fixtures.embedBytesOver as FixtureEntry;
+			expect(describeDiscordError(status, JSON.stringify(body))).toBe(
+				"Message size exceeds maximum allowed. Oversized fields: message.embeds=16414 (HTTP 413). Discord also limits the size of an embed in bytes; emoji and some scripts take up to 4 bytes per character, so shorten the text.",
+			);
+		});
+
+		it("reports a rate limit without retry_after", () => {
+			const { status, body } = fixtures.rateLimited as FixtureEntry;
+			const result = describeDiscordError(status, JSON.stringify(body));
+			expect(result).toBe("You are being rate limited. (HTTP 429)");
+			expect(result).not.toContain("retry_after");
+		});
+
+		it("shows the message with an unknown code", () => {
+			expect(describeDiscordError(400, '{"message":"Invalid Webhook Token","code":50027}')).toBe(
+				"Invalid Webhook Token (HTTP 400)",
+			);
+		});
+
+		it("adds the byte hint only for code 40005 mentioning message.embeds", () => {
+			expect(describeDiscordError(413, '{"message":"Too big: message.embeds=1","code":1}')).toBe(
+				"Too big: message.embeds=1 (HTTP 413)",
+			);
+			expect(describeDiscordError(413, '{"message":"Too big: message.files=1","code":40005}')).toBe(
+				"Too big: message.files=1 (HTTP 413)",
+			);
+		});
+
+		it("prefers the field-error shape", () => {
+			expect(describeDiscordError(400, '{"username":["Bad"]}')).toBe("Username: Bad (HTTP 400)");
+		});
+	});
+
 	describe("fallback", () => {
 		it("truncates a long non-JSON body to 300 characters plus an ellipsis", () => {
 			const html = "<html>" + "x".repeat(994);
@@ -150,8 +185,21 @@ describe("describeDiscordError", () => {
 		});
 
 		it("falls back when a value is not an array", () => {
-			expect(describeDiscordError(400, '{"message":"Invalid Webhook Token","code":50027}')).toBe(
-				'HTTP 400: {"message":"Invalid Webhook Token","code":50027}',
+			expect(describeDiscordError(400, '{"embeds":"Invalid","code":50027}')).toBe(
+				'HTTP 400: {"embeds":"Invalid","code":50027}',
+			);
+		});
+
+		it("falls back when message is not a string", () => {
+			expect(describeDiscordError(400, '{"message":42,"code":50027}')).toBe(
+				'HTTP 400: {"message":42,"code":50027}',
+			);
+			expect(describeDiscordError(400, '{"message":{"a":1}}')).toBe('HTTP 400: {"message":{"a":1}}');
+		});
+
+		it("falls back when message is an empty string", () => {
+			expect(describeDiscordError(400, '{"message":"","code":1}')).toBe(
+				'HTTP 400: {"message":"","code":1}',
 			);
 		});
 

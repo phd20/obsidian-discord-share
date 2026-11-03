@@ -3,7 +3,9 @@ const MAX_RAW_LENGTH = 300;
 /**
  * Turns a Discord webhook error response into a sentence for a notice.
  * Discord's field-error shape ({ "username": ["..."] }) is rewritten in plain
- * words; anything else falls back to `HTTP <status>: <text>`. Never throws.
+ * words; an object with a string `message` (rate limits, 413 size errors) is
+ * shown as `<message> (HTTP <status>)`; anything else falls back to
+ * `HTTP <status>: <text>`. Never throws.
  */
 export function describeDiscordError(status: number, text: string): string {
 	const fieldErrors = parseFieldErrors(text);
@@ -11,7 +13,37 @@ export function describeDiscordError(status: number, text: string): string {
 		const message = describeFieldErrors(status, fieldErrors);
 		if (message) return message;
 	}
+	const generic = parseMessageError(text);
+	if (generic) return describeMessageError(status, generic);
 	return describeRaw(status, text);
+}
+
+interface MessageError {
+	message: string;
+	code?: unknown;
+}
+
+function parseMessageError(text: string): MessageError | null {
+	let parsed: unknown;
+	try {
+		parsed = JSON.parse(text);
+	} catch {
+		return null;
+	}
+	if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+		return null;
+	}
+	const record = parsed as Record<string, unknown>;
+	if (typeof record.message !== "string" || record.message === "") return null;
+	return { message: record.message, code: record.code };
+}
+
+function describeMessageError(status: number, error: MessageError): string {
+	const base = `${error.message} (HTTP ${status})`;
+	if (error.code === 40005 && error.message.includes("message.embeds")) {
+		return `${base}. Discord also limits the size of an embed in bytes; emoji and some scripts take up to 4 bytes per character, so shorten the text.`;
+	}
+	return base;
 }
 
 function parseFieldErrors(text: string): Record<string, string[]> | null {

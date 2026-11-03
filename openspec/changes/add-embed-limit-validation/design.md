@@ -31,14 +31,19 @@ Consequence: Discord gives no detail for most embed errors, so the pre-flight is
 
 **5. The `413` notice stops quoting 8MB.** Discord's upload limit depends on the server's boost tier and has changed over time, so any number is wrong for someone. New text: `Failed to share <filename> to Discord. The file is larger than this Discord server accepts.` The attachment path gets no pre-flight for the same reason.
 
-**6. Counting unit: code points, isolated in one function.** `measure(text)` is the only place length is computed. It counts code points (`[...text].length`). If Discord actually counts UTF-16 units, we under-count astral characters, a request goes out and Discord's `400` is shown by the safety net: wrong in the safe direction. The reverse mistake would block valid shares, which is worse. The live spec decides (see Open Questions), and flipping is a one-line change.
+**6. Counting: code points, trimmed.** `measure(text)` is the only place length is computed. It counts Unicode code points of the trimmed text (`[...text.trim()].length`). Both choices were checked against a real webhook on 2026-11-02: a description of 2000 emoji and 2096 other characters (4096 code points, 6096 UTF-16 units) is accepted and 4097 code points is rejected, and a 4096-character description followed by spaces or newlines is accepted (title and footer trim too). The same trimmed text decides whether a part is present at all.
 
-**7. Tests.** Jest for the validator (each limit at and over the boundary, combined total, defaults, astral characters, malformed `fields`) and for the parser (each real recorded response, non-JSON, empty). The e2e spec shares an over-limit selection and asserts the notice and an empty `captures` list (and no webhook picker with two webhooks configured), then makes the capture server answer a canned `{"embeds": ["0"]}` for something the pre-flight allows and asserts the readable notice. No capture-server change: it already supports canned responses, and a mock that imported our own limits table would only agree with the plugin by construction. The live spec is the check against Discord.
+**7. Nothing-to-share check.** Discord rejects, with the opaque `{"embeds": ["0"]}`, an embed that has none of title, description, footer text, author name, fields, thumbnail or image (color-only, URL-only, whitespace-only description and timestamp-only were all rejected; title-only, footer-only, author-only, fields-only and thumbnail-only were accepted). A frontmatter-only note shared as content would hit this. `validateEmbed` reports it as a violation of kind `empty` ("Nothing to share: the embed has no title, description, fields, footer, author or image.") so the pre-flight explains it. Image-only was rate-limited during the probe and is treated as valid.
+
+**8. Embed byte cap.** Discord also caps the size of the embeds in bytes (a 4096-emoji description answered `413`, code 40005, "Oversized fields: message.embeds=16414"). The exact limit is unknown and depends on UTF-8 and JSON escaping, so it is not pre-checked. The parser reads `{ message, code }` bodies and adds a hint for this case.
+
+**9. Tests.** Jest for the validator (each limit at and over the boundary, combined total, defaults, astral characters, malformed `fields`) and for the parser (each real recorded response, non-JSON, empty). The e2e spec shares an over-limit selection and asserts the notice and an empty `captures` list (and no webhook picker with two webhooks configured), then makes the capture server answer a canned `{"embeds": ["0"]}` for something the pre-flight allows and asserts the readable notice. No capture-server change: it already supports canned responses, and a mock that imported our own limits table would only agree with the plugin by construction. The live spec is the check against Discord.
 
 ## Risks / Trade-offs
 
 - [Discord changes a limit and the pre-flight blocks a share that would work] → Limits are one table, and the issue is visible in the notice; the safety net means a limit that is too loose degrades to a readable `400`, not a silent failure. A too-tight limit has no bypass; accepted, since the limits are long-stable.
-- [Our count differs from Discord's: unit or whitespace trimming] → Code points err towards sending; the live spec checks both. Mismatches near a boundary fall to the safety net.
+- [Our count differs from Discord's] → Code points and trimming were verified against a real webhook; the live spec keeps checking them. Mismatches near a boundary fall to the safety net.
+- [Embeds under 4096 characters can still hit Discord's byte cap, mostly emoji-dense text] → Not pre-checked; the response is shown readably with a hint.
 - [The recorded response fixtures drift from what Discord really sends] → They were recorded from a real webhook; re-record if a live check shows a different shape.
 - [Opaque Discord errors for URL, color and username remain] → Follow-up bead; the safety net says "Discord rejected the embed" at least, instead of raw JSON.
 - [Discord accepts empty field names/values and an empty footer text (observed 204)] → Not validated; adding checks Discord does not require would block valid shares.
@@ -46,6 +51,6 @@ Consequence: Discord gives no detail for most embed errors, so the pre-flight is
 
 ## Open Questions
 
-- Does Discord count code points or UTF-16 units? Live spec: share a description of exactly 4096 astral characters (accepted means code points).
-- Does Discord trim leading and trailing whitespace before counting?
-- Does Discord reject an embed with no text at all (a note with only frontmatter shares an embed with just a timestamp)? If it does, a "nothing to share" violation may belong here or in a follow-up.
+- Resolved 2026-11-02: Discord counts code points, trims before counting, and rejects an embed with no text (see decisions 6 and 7).
+- What exactly is the embed byte cap? Left unchecked; the live spec should not depend on it.
+- Does an image-only embed pass? It was rate-limited during the probe; assumed valid.

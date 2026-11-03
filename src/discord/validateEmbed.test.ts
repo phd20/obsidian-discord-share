@@ -1,6 +1,7 @@
-import { EMBED_LIMITS, measure, validateEmbed, Violation } from "./validateEmbed";
+import { EMBED_LIMITS, measure, ValidatableEmbed, validateEmbed, Violation } from "./validateEmbed";
 
 const rep = (n: number, ch = "a") => ch.repeat(n);
+const EMPTY: Violation = { field: "Embed", kind: "empty", actual: 0, limit: 0 };
 const labels = (violations: Violation[]) => violations.map((v) => v.field);
 
 describe("measure", () => {
@@ -10,11 +11,17 @@ describe("measure", () => {
 		expect(measure("a😀b")).toBe(3);
 		expect(measure("")).toBe(0);
 	});
+
+	it("ignores leading and trailing whitespace", () => {
+		expect(measure("  abc \n\n")).toBe(3);
+		expect(measure("a b")).toBe(3);
+		expect(measure(" \n\t ")).toBe(0);
+	});
 });
 
 describe("validateEmbed", () => {
-	it("returns no violations for an empty embed", () => {
-		expect(validateEmbed({})).toEqual([]);
+	it("returns no violations for an embed with content", () => {
+		expect(validateEmbed({ title: "t" })).toEqual([]);
 	});
 
 	describe.each([
@@ -139,12 +146,103 @@ describe("validateEmbed", () => {
 
 		it("tolerates non-string title and missing footer text", () => {
 			const embed = { title: 5, description: null, footer: {}, author: {} } as unknown as Parameters<typeof validateEmbed>[0];
+			expect(validateEmbed(embed)).toEqual([EMPTY]);
+		});
+
+		it("does not throw on null footer, author, thumbnail or image", () => {
+			const embed = { footer: null, author: null, thumbnail: null, image: null } as unknown as Parameters<typeof validateEmbed>[0];
+			expect(validateEmbed(embed)).toEqual([EMPTY]);
+		});
+
+		it("does not throw on a null or non-object embed", () => {
+			expect(validateEmbed(null as unknown as Parameters<typeof validateEmbed>[0])).toEqual([EMPTY]);
+			expect(validateEmbed("x" as unknown as Parameters<typeof validateEmbed>[0])).toEqual([EMPTY]);
+		});
+
+		it.each([
+			["a string", "oops"],
+			["null", null],
+			["an empty array", []],
+			["an array of non-objects", [null, 1, "x"]],
+		])("treats an otherwise empty embed with fields that is %s as empty", (_, fields) => {
+			expect(validateEmbed({ fields })).toEqual([EMPTY]);
+		});
+
+		it("does not treat non-string urls as content", () => {
+			const embed = { thumbnail: { url: 5 }, image: { url: null } } as unknown as Parameters<typeof validateEmbed>[0];
+			expect(validateEmbed(embed)).toEqual([EMPTY]);
+		});
+	});
+
+	describe("trimmed measuring", () => {
+		it("does not count leading or trailing spaces and newlines", () => {
+			expect(validateEmbed({ description: `  ${rep(4096)} \n` })).toEqual([]);
+			expect(validateEmbed({ description: rep(4096) + "   " })).toEqual([]);
+		});
+
+		it("reports 4097 characters even when padded with spaces", () => {
+			expect(validateEmbed({ description: ` ${rep(4097)}  ` })).toEqual([
+				{ field: "Description", kind: "length", actual: 4097, limit: 4096 },
+			]);
+		});
+
+		it("counts a whitespace-only value as 0 in the total", () => {
+			const result = validateEmbed({ description: rep(4096), title: rep(256), footer: { text: rep(1648) + "      " }, author: { name: "   " } });
+			expect(result).toEqual([]);
+		});
+
+		it("trims field names and values", () => {
+			expect(validateEmbed({ fields: [{ name: ` ${rep(256)} `, value: `\n${rep(1024)}\n` }] })).toEqual([]);
+		});
+	});
+
+	describe("emoji and text mixed", () => {
+		it("counts 2000 emoji plus 2096 characters as exactly 4096", () => {
+			const description = rep(2000, "😀") + rep(2096, "x");
+			expect(validateEmbed({ description })).toEqual([]);
+		});
+
+		it("reports 2000 emoji plus 2097 characters as 4097", () => {
+			const description = rep(2000, "😀") + rep(2097, "x");
+			expect(validateEmbed({ description })).toEqual([
+				{ field: "Description", kind: "length", actual: 4097, limit: 4096 },
+			]);
+		});
+	});
+
+	describe("empty embeds", () => {
+		it.each([
+			["an empty object", {}],
+			["a color only", { color: 5814783 }],
+			["a url only", { url: "https://example.com" }],
+			["a timestamp only", { timestamp: "2026-01-01T00:00:00.000Z" }],
+			["a whitespace-only description", { description: " \n\t " }],
+			["a whitespace-only title", { title: "   " }],
+			["footer text of spaces", { footer: { text: "   " } }],
+			["author name of spaces", { author: { name: "  " } }],
+			["an empty fields array", { fields: [] }],
+			["an empty thumbnail url", { thumbnail: { url: "" } }],
+			["an empty image url", { image: { url: "" } }],
+		])("treats %s as empty", (_, embed) => {
+			expect(validateEmbed(embed as ValidatableEmbed)).toEqual([EMPTY]);
+		});
+
+		it.each([
+			["a title only", { title: "t" }],
+			["a description only", { description: "d" }],
+			["a footer only", { footer: { text: "f" } }],
+			["an author only", { author: { name: "a" } }],
+			["fields only", { fields: [{ name: "n", value: "v" }] }],
+			["a thumbnail only", { thumbnail: { url: "https://example.com/t.png" } }],
+			["an image only", { image: { url: "https://example.com/i.png" } }],
+		])("accepts %s", (_, embed) => {
 			expect(validateEmbed(embed)).toEqual([]);
 		});
 
-		it("does not throw on null footer or author", () => {
-			const embed = { footer: null, author: null } as unknown as Parameters<typeof validateEmbed>[0];
-			expect(validateEmbed(embed)).toEqual([]);
+		it("does not call an embed with only a long description empty", () => {
+			expect(validateEmbed({ description: rep(4097) })).toEqual([
+				{ field: "Description", kind: "length", actual: 4097, limit: 4096 },
+			]);
 		});
 	});
 });

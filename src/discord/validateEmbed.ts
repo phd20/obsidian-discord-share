@@ -10,7 +10,7 @@ export const EMBED_LIMITS = {
 	total: 6000,
 } as const;
 
-export type ViolationKind = "length" | "count" | "total";
+export type ViolationKind = "length" | "count" | "total" | "empty";
 
 export interface Violation {
 	/** Human label, e.g. "Description", "Field 3 value", "Fields", "Total embed text". */
@@ -27,12 +27,31 @@ export interface ValidatableEmbed {
 	footer?: { text?: string };
 	author?: { name?: string };
 	fields?: unknown;
+	thumbnail?: { url?: string };
+	image?: { url?: string };
 }
 
-/** The only place a length is computed: counts Unicode code points. */
-export const measure = (text: string): number => [...text].length;
+/**
+ * The only place a length is computed: counts Unicode code points of the trimmed text,
+ * because Discord trims leading and trailing whitespace before measuring.
+ */
+export const measure = (text: string): number => [...text.trim()].length;
 
 const asText = (value: unknown): string | undefined => (typeof value === "string" ? value : undefined);
+
+const isFilled = (value: unknown): boolean => typeof value === "string" && value.trim() !== "";
+
+const hasUrl = (value: unknown): boolean =>
+	typeof value === "object" && value !== null && typeof (value as { url?: unknown }).url === "string" && (value as { url: string }).url !== "";
+
+const hasContent = (embed: ValidatableEmbed): boolean =>
+	isFilled(embed.title) ||
+	isFilled(embed.description) ||
+	isFilled(embed.footer?.text) ||
+	isFilled(embed.author?.name) ||
+	(Array.isArray(embed.fields) && embed.fields.some((entry: unknown) => typeof entry === "object" && entry !== null)) ||
+	hasUrl(embed.thumbnail) ||
+	hasUrl(embed.image);
 
 export const validateEmbed = (embed: ValidatableEmbed): Violation[] => {
 	const violations: Violation[] = [];
@@ -47,6 +66,8 @@ export const validateEmbed = (embed: ValidatableEmbed): Violation[] => {
 	};
 
 	const source = (embed ?? {}) as ValidatableEmbed;
+
+	if (!hasContent(source)) violations.push({ field: "Embed", kind: "empty", actual: 0, limit: 0 });
 
 	check("Title", source.title, EMBED_LIMITS.title);
 	check("Description", source.description, EMBED_LIMITS.description);

@@ -24,6 +24,12 @@ describe("formatViolations", () => {
 		);
 	});
 
+	it("formats an empty violation", () => {
+		expect(formatViolations([{ field: "Embed", kind: "empty", actual: 0, limit: 0 }])).toBe(
+			`${HEADER}\nNothing to share: the embed has no title, description, fields, footer, author or image.`
+		);
+	});
+
 	it("uses thousands separators for large numbers", () => {
 		expect(formatViolations([length("Description", 1234567, 4096)])).toBe(
 			`${HEADER}\nDescription is 1,234,567 characters; Discord allows 4,096.`

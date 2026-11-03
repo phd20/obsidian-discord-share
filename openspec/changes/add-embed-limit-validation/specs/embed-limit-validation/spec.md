@@ -49,12 +49,31 @@ The check SHALL use the embed as it will be sent, including values from the defa
 - **WHEN** the settings define a 2000-character default footer and the shared description is 4096 characters with a 256-character title
 - **THEN** the notice reports the 6000-character total
 
-### Requirement: Length is measured in Unicode code points
-The plugin SHALL measure lengths in Unicode code points, so a character outside the Basic Multilingual Plane (such as an emoji) counts once. A request Discord would accept SHALL NOT be refused because of how the plugin counts.
+### Requirement: Length is measured in Unicode code points, ignoring surrounding whitespace
+The plugin SHALL measure lengths in Unicode code points, so a character outside the Basic Multilingual Plane (such as an emoji) counts once, and SHALL ignore leading and trailing whitespace, as Discord does. A request Discord would accept SHALL NOT be refused because of how the plugin counts.
 
-#### Scenario: Emoji-heavy description at the limit
-- **WHEN** the user shares a selection of exactly 4096 emoji
+#### Scenario: Astral characters count once
+- **WHEN** the user shares a description of 2000 emoji and 2096 other characters (4096 code points)
 - **THEN** the webhook receives the embed and the success notice is shown
+
+#### Scenario: Surrounding whitespace is ignored
+- **WHEN** the user shares a note's content that is 4096 characters followed by three trailing spaces
+- **THEN** the webhook receives the embed and the success notice is shown
+
+### Requirement: Embeds with nothing to show are refused
+The plugin SHALL NOT send an embed that has none of: a title, a non-blank description, footer text, an author name, a field, a thumbnail or an image, because Discord rejects it without saying why. The failure notice SHALL start with "Failed to share embed to Discord." and say that there is nothing to share.
+
+#### Scenario: Note with only frontmatter
+- **WHEN** the user shares the content of a note that has only frontmatter and no default title, footer, author or fields are set
+- **THEN** no request is sent and the notice says there is nothing to share
+
+#### Scenario: Only a color is set
+- **WHEN** the embed has a color and a URL but no text
+- **THEN** no request is sent and the notice says there is nothing to share
+
+#### Scenario: A default title is enough
+- **WHEN** the note has only frontmatter but a default embed title is set in the settings
+- **THEN** the embed is sent
 
 ### Requirement: Attachment size is not checked before sending
 The plugin SHALL NOT refuse an attachment on size before sending, because Discord's upload limit depends on the server. The decision SHALL come from the webhook's response.
