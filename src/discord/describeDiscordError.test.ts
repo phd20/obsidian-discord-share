@@ -14,6 +14,9 @@ const fixtures = JSON.parse(
 	fs.readFileSync(path.join(__dirname, "../../test/fixtures/discord-webhook-errors.json"), "utf8"),
 ) as Record<string, FixtureEntry | string>;
 
+const HINT =
+	" Discord also limits the size of an embed to roughly 10 KB; emoji and many non-Latin scripts take 3 to 4 bytes per character, so shorten the text.";
+
 const entries = Object.entries(fixtures).filter(([name]) => !name.startsWith("_")) as [
 	string,
 	FixtureEntry,
@@ -119,7 +122,7 @@ describe("describeDiscordError", () => {
 		it("explains Discord's embed byte limit", () => {
 			const { status, body } = fixtures.embedBytesOver as FixtureEntry;
 			expect(describeDiscordError(status, JSON.stringify(body))).toBe(
-				"Message size exceeds maximum allowed. Oversized fields: message.embeds=16414 (HTTP 413). Discord also limits the size of an embed in bytes; emoji and some scripts take up to 4 bytes per character, so shorten the text.",
+				`Message size exceeds maximum allowed. Oversized fields: message.embeds=16414 (HTTP 413).${HINT}`,
 			);
 		});
 
@@ -136,13 +139,23 @@ describe("describeDiscordError", () => {
 			);
 		});
 
-		it("adds the byte hint only for code 40005 mentioning message.embeds", () => {
+		it("adds the byte hint for code 40005 whatever the message", () => {
+			expect(
+				describeDiscordError(413, '{"message":"Message size exceeds maximum allowed. Oversized fields: unknown (diagnosis failed)","code":40005}'),
+			).toBe(`Message size exceeds maximum allowed. Oversized fields: unknown (diagnosis failed) (HTTP 413).${HINT}`);
+			expect(describeDiscordError(413, '{"message":"Request entity too large","code":40005}')).toBe(
+				`Request entity too large (HTTP 413).${HINT}`,
+			);
+			expect(describeDiscordError(413, '{"message":"Too big: message.files=1","code":40005}')).toBe(
+				`Too big: message.files=1 (HTTP 413).${HINT}`,
+			);
+		});
+
+		it("adds no byte hint without code 40005", () => {
 			expect(describeDiscordError(413, '{"message":"Too big: message.embeds=1","code":1}')).toBe(
 				"Too big: message.embeds=1 (HTTP 413)",
 			);
-			expect(describeDiscordError(413, '{"message":"Too big: message.files=1","code":40005}')).toBe(
-				"Too big: message.files=1 (HTTP 413)",
-			);
+			expect(describeDiscordError(413, '{"message":"Request entity too large"}')).toBe("Request entity too large (HTTP 413)");
 		});
 
 		it("prefers the field-error shape", () => {

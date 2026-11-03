@@ -1,83 +1,19 @@
-import { $, $$, browser, expect } from "@wdio/globals";
-import type { TFile } from "obsidian";
-import { runCommand, injectSettings, useCaptureServer } from "../support/plugin";
+import { $, browser, expect } from "@wdio/globals";
+import {
+	chooseSuggestion,
+	clearNotices,
+	injectSettings,
+	modalOpen,
+	runCommand,
+	selectSentence,
+	suggestionTexts,
+	useCaptureServer,
+	waitForNotice,
+} from "../support/plugin";
 import { DISCORD_ATTACHMENT_LIMIT_BYTES, writeOversizedPng } from "../support/oversized";
 
-// Local helpers: modal and notice access used only by this spec.
 const FIRST_PATH = "/api/webhooks/1/first";
 const SECOND_PATH = "/api/webhooks/2/second";
-
-/** Opens selection.md and selects the marked sentence in its editor. */
-const selectSentence = async () => {
-	await browser.executeObsidian(async ({ app }) => {
-		const file = app.vault.getAbstractFileByPath("selection.md") as TFile;
-		await app.workspace.getLeaf(false).openFile(file);
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const editor = (app.workspace as any).activeEditor.editor;
-		const text: string = editor.getValue();
-		const start = text.indexOf("SELECTED_TEXT_START");
-		const end = text.indexOf("SELECTED_TEXT_END") + "SELECTED_TEXT_END".length;
-		editor.setSelection(editor.offsetToPos(start), editor.offsetToPos(end));
-	});
-	await browser.waitUntil(
-		async () =>
-			browser.executeObsidian(
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				({ app }) => (app.workspace as any).activeEditor?.editor?.somethingSelected() === true,
-			),
-		{ timeoutMsg: "selection was not applied in the editor" },
-	);
-};
-
-/** Texts of the elements matching `selector`, read in one round trip. */
-const textsOf = async (selector: string): Promise<string[]> =>
-	browser.execute(
-		(sel) => Array.from(document.querySelectorAll(sel)).map((el) => (el.textContent || "").trim()),
-		selector,
-	);
-
-/** Waits for a suggest modal and returns the text of its suggestions. */
-const suggestionTexts = async (): Promise<string[]> => {
-	await browser.waitUntil(async () => (await textsOf(".modal-container .suggestion-item")).length > 0, {
-		timeoutMsg: "no suggest modal with suggestions appeared",
-	});
-	return textsOf(".modal-container .suggestion-item");
-};
-
-/** Clicks the suggestion whose text is exactly `text`. */
-const chooseSuggestion = async (text: string) => {
-	const index = (await suggestionTexts()).indexOf(text);
-	if (index === -1) throw new Error(`suggestion "${text}" not found`);
-	const items = await $$(".modal-container .suggestion-item");
-	// Under mobile emulation the prompt slides in as a drawer, and a click on a moving item is lost
-	// or intercepted, so wait until the item holds still before clicking.
-	let lastTop = Number.NaN;
-	await browser.waitUntil(async () => {
-		const { y } = await items[index].getLocation();
-		const settled = y === lastTop;
-		lastTop = y;
-		return settled;
-	}, { interval: 150, timeoutMsg: `suggestion "${text}" never stopped moving` });
-	await items[index].click();
-};
-
-const noticeTexts = async (): Promise<string[]> => textsOf(".notice-container .notice");
-
-/** Waits until a notice satisfying `predicate` is visible and returns its text. */
-const waitForNotice = async (predicate: (text: string) => boolean): Promise<string> => {
-	let found = "";
-	await browser.waitUntil(
-		async () => {
-			const match = (await noticeTexts()).find(predicate);
-			if (match) found = match;
-			return Boolean(match);
-		},
-		{ timeoutMsg: "expected notice did not appear" },
-	);
-	return found;
-};
-
-const modalOpen = async (): Promise<boolean> => (await textsOf(".modal-container")).length > 0;
 
 describe("Webhook picker and error notices", () => {
 	const harness = useCaptureServer();
@@ -117,7 +53,13 @@ describe("Webhook picker and error notices", () => {
 	});
 
 	describe("error notices", () => {
-		it("413 on an oversized attachment shows the 8MB notice", async () => {
+		// Notices stay up for several seconds, so a previous test's notice must not satisfy this test's wait.
+		beforeEach(async () => {
+			await clearNotices();
+		});
+
+		/** Writes big.png into the sandbox vault and shares it as an attachment. */
+		const shareBigPng = async () => {
 			// The oversized file is generated on demand and written straight into the sandbox vault.
 			const basePath = await browser.executeObsidian(({ app }) => (app.vault.adapter as unknown as { basePath: string }).basePath);
 			writeOversizedPng(basePath, "big.png");
@@ -127,21 +69,36 @@ describe("Webhook picker and error notices", () => {
 				{ timeoutMsg: "Obsidian did not index big.png" },
 			);
 
-			harness.server.setResponse(413, "Request entity too large");
 			await runCommand("attachment");
 			const input = await $(".modal-container .prompt-input");
 			await input.waitForDisplayed();
 			await input.setValue("big.png");
 			await browser.waitUntil(async () => (await suggestionTexts()).includes("big.png"));
 			await chooseSuggestion("big.png");
+		};
+
+		it("413 on an oversized attachment says the file is larger than the server accepts", async () => {
+			harness.server.setResponse(413, "Request entity too large");
+			await shareBigPng();
 
 			const notice = await waitForNotice((text) => text.startsWith("Failed to share big.png"));
-			expect(notice).toBe("Failed to share big.png to Discord. Attachments must be smaller than 8MB.");
+			expect(notice).toBe("Failed to share big.png to Discord. The file is larger than this Discord server accepts.");
 			const [request] = harness.server.requests;
 			expect(harness.server.requests).toHaveLength(1);
 			const upload = request.parts?.find((part) => part.name === "files[0]");
 			expect(upload?.filename).toBe("big.png");
 			expect(upload?.size).toBeGreaterThan(DISCORD_ATTACHMENT_LIMIT_BYTES);
+		});
+
+		it("a 400 whose body contains 413 is reported as a 400, not as an oversized file", async () => {
+			// A plain string body that is not Discord's field-error shape, so the notice falls back to the raw text.
+			harness.server.setResponse(400, '{"message":"code 413"}');
+			await shareBigPng();
+
+			const notice = await waitForNotice((text) => text.startsWith("Failed to share big.png"));
+			expect(notice).not.toContain("larger than this Discord server accepts");
+			expect(notice).toContain("400");
+			expect(harness.server.requests).toHaveLength(1);
 		});
 
 		it("500 on an embed shows a failure notice with the status", async () => {

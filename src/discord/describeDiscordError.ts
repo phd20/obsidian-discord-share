@@ -40,8 +40,8 @@ function parseMessageError(text: string): MessageError | null {
 
 function describeMessageError(status: number, error: MessageError): string {
 	const base = `${error.message} (HTTP ${status})`;
-	if (error.code === 40005 && error.message.includes("message.embeds")) {
-		return `${base}. Discord also limits the size of an embed in bytes; emoji and some scripts take up to 4 bytes per character, so shorten the text.`;
+	if (error.code === 40005) {
+		return `${base}. Discord also limits the size of an embed to roughly 10 KB; emoji and many non-Latin scripts take 3 to 4 bytes per character, so shorten the text.`;
 	}
 	return base;
 }

@@ -24,6 +24,12 @@ describe("formatViolations", () => {
 		);
 	});
 
+	it("formats a bytes violation", () => {
+		expect(formatViolations([{ field: "Embed text", kind: "bytes", actual: 10200, limit: 10000 }])).toBe(
+			`${HEADER}\nEmbed text is 10,200 bytes; Discord allows about 10,000. Emoji and many non-Latin scripts take 3 to 4 bytes per character.`
+		);
+	});
+
 	it("formats an empty violation", () => {
 		expect(formatViolations([{ field: "Embed", kind: "empty", actual: 0, limit: 0 }])).toBe(
 			`${HEADER}\nNothing to share: the embed has no title, description, fields, footer, author or image.`

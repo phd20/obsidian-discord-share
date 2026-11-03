@@ -20,8 +20,8 @@ When the webhook responds with a non-2xx status, the plugin SHALL show a failure
 - **THEN** the notice contains "Username" and "Must be between 1 and 80 in length." and `400`, and does not contain the raw JSON braces
 
 #### Scenario: Discord reports the embed is too large in bytes
-- **WHEN** the webhook responds `413` to an embed with the body `{"message": "Message size exceeds maximum allowed. Oversized fields: message.embeds=16414", "code": 40005}`
-- **THEN** the notice contains Discord's message and `413`, and advises shortening the text because emoji and some scripts take several bytes per character
+- **WHEN** the webhook responds `413` to an embed with code `40005` and any of the messages "Message size exceeds maximum allowed. Oversized fields: message.embeds=16414", "... Oversized fields: unknown (diagnosis failed)" or "Request entity too large"
+- **THEN** the notice contains Discord's message and `413`, and advises shortening the text because emoji and many non-Latin scripts take several bytes per character
 
 #### Scenario: Rate limited
 - **WHEN** the webhook responds `429` with the body `{"message": "You are being rate limited.", "retry_after": 0.3}`

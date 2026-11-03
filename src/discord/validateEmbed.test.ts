@@ -1,4 +1,4 @@
-import { EMBED_LIMITS, measure, ValidatableEmbed, validateEmbed, Violation } from "./validateEmbed";
+import { EMBED_LIMITS, measure, measureBytes, ValidatableEmbed, validateEmbed, Violation } from "./validateEmbed";
 
 const rep = (n: number, ch = "a") => ch.repeat(n);
 const EMPTY: Violation = { field: "Embed", kind: "empty", actual: 0, limit: 0 };
@@ -16,6 +16,17 @@ describe("measure", () => {
 		expect(measure("  abc \n\n")).toBe(3);
 		expect(measure("a b")).toBe(3);
 		expect(measure(" \n\t ")).toBe(0);
+	});
+});
+
+describe("measureBytes", () => {
+	it("counts UTF-8 bytes of the trimmed text", () => {
+		expect(measureBytes("abc")).toBe(3);
+		expect(measureBytes("é")).toBe(2);
+		expect(measureBytes("漢")).toBe(3);
+		expect(measureBytes("😀")).toBe(4);
+		expect(measureBytes("  漢 \n")).toBe(3);
+		expect(measureBytes("")).toBe(0);
 	});
 });
 
@@ -108,14 +119,14 @@ describe("validateEmbed", () => {
 	});
 
 	describe("astral characters", () => {
-		it("accepts 4096 emoji as a description and counts them as 4096", () => {
+		it("counts 4096 emoji as 4096 characters (their bytes are reported separately)", () => {
 			const description = rep(4096, "😀");
 			expect(description.length).toBe(8192);
-			expect(validateEmbed({ description })).toEqual([]);
+			expect(validateEmbed({ description }).filter((v) => v.kind === "length")).toEqual([]);
 		});
 
-		it("reports 4097 emoji as 4097", () => {
-			expect(validateEmbed({ description: rep(4097, "😀") })).toEqual([
+		it("reports 4097 emoji as 4097 characters", () => {
+			expect(validateEmbed({ description: rep(4097, "😀") }).filter((v) => v.kind === "length")).toEqual([
 				{ field: "Description", kind: "length", actual: 4097, limit: 4096 },
 			]);
 		});
@@ -197,13 +208,13 @@ describe("validateEmbed", () => {
 	});
 
 	describe("emoji and text mixed", () => {
-		it("counts 2000 emoji plus 2096 characters as exactly 4096", () => {
-			const description = rep(2000, "😀") + rep(2096, "x");
+		it("counts 1000 emoji plus 3096 characters as exactly 4096", () => {
+			const description = rep(1000, "😀") + rep(3096, "x");
 			expect(validateEmbed({ description })).toEqual([]);
 		});
 
-		it("reports 2000 emoji plus 2097 characters as 4097", () => {
-			const description = rep(2000, "😀") + rep(2097, "x");
+		it("reports 1000 emoji plus 3097 characters as 4097", () => {
+			const description = rep(1000, "😀") + rep(3097, "x");
 			expect(validateEmbed({ description })).toEqual([
 				{ field: "Description", kind: "length", actual: 4097, limit: 4096 },
 			]);
@@ -244,5 +255,56 @@ describe("validateEmbed", () => {
 				{ field: "Description", kind: "length", actual: 4097, limit: 4096 },
 			]);
 		});
+	});
+});
+
+describe("byte size", () => {
+	const bytes = (actual: number): Violation => ({ field: "Embed text", kind: "bytes", actual, limit: 10000 });
+
+	it("reports 3,400 CJK characters as 10,200 bytes", () => {
+		expect(validateEmbed({ description: rep(3400, "漢") })).toEqual([bytes(10200)]);
+	});
+
+	it("accepts 3,333 CJK characters (9,999 bytes)", () => {
+		expect(validateEmbed({ description: rep(3333, "漢") })).toEqual([]);
+	});
+
+	it("accepts exactly 10,000 bytes and reports 10,001", () => {
+		expect(validateEmbed({ description: rep(3333, "漢") + "a" })).toEqual([]);
+		expect(validateEmbed({ description: rep(3333, "漢") + "ab" })).toEqual([bytes(10001)]);
+	});
+
+	it("accepts 4096 two-byte characters (8,192 bytes)", () => {
+		expect(validateEmbed({ description: rep(4096, "é") })).toEqual([]);
+	});
+
+	it("leaves the ASCII 6000 total case unaffected", () => {
+		const result = validateEmbed({ title: rep(256), description: rep(4096), footer: { text: rep(1649) } });
+		expect(result).toEqual([{ field: "Total embed text", kind: "total", actual: 6001, limit: 6000 }]);
+	});
+
+	it("reports the bytes violation after the total violation", () => {
+		const result = validateEmbed({ description: rep(4096, "漢"), footer: { text: rep(2048, "漢") } });
+		expect(result.map((v) => v.kind)).toEqual(["total", "bytes"]);
+		expect(result[1]).toEqual(bytes((4096 + 2048) * 3));
+	});
+
+	it("trims before measuring bytes", () => {
+		expect(validateEmbed({ description: rep(3333, "漢") + "     " })).toEqual([]);
+	});
+
+	it.each([
+		["title", (t: string) => ({ title: t }), 10002],
+		["footer text", (t: string) => ({ footer: { text: t } }), 10002],
+		["author name", (t: string) => ({ author: { name: t } }), 10002],
+		["field name", (t: string) => ({ fields: [{ name: t, value: "v" }] }), 10003],
+		["field value", (t: string) => ({ fields: [{ name: "n", value: t }] }), 10003],
+	] as const)("counts %s bytes", (_, build, expected) => {
+		expect(validateEmbed({ description: rep(3333, "漢"), ...build("漢") })).toEqual([bytes(expected)]);
+	});
+
+	it("reports 4096 emoji as a bytes violation but not a length violation", () => {
+		const result = validateEmbed({ description: rep(4096, "😀") });
+		expect(result).toEqual([bytes(16384)]);
 	});
 });

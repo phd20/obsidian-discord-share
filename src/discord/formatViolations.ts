@@ -14,6 +14,8 @@ const describe = (violation: Violation): string => {
 			return `${field}: ${n(actual)} entries; Discord allows ${n(limit)}.`;
 		case "total":
 			return `${field} is ${n(actual)} characters; Discord allows ${n(limit)} in total.`;
+		case "bytes":
+			return `${field} is ${n(actual)} bytes; Discord allows about ${n(limit)}. Emoji and many non-Latin scripts take 3 to 4 bytes per character.`;
 		default:
 			return `${field} is ${n(actual)} characters; Discord allows ${n(limit)}.`;
 	}

@@ -53,7 +53,7 @@ The check SHALL use the embed as it will be sent, including values from the defa
 The plugin SHALL measure lengths in Unicode code points, so a character outside the Basic Multilingual Plane (such as an emoji) counts once, and SHALL ignore leading and trailing whitespace, as Discord does. A request Discord would accept SHALL NOT be refused because of how the plugin counts.
 
 #### Scenario: Astral characters count once
-- **WHEN** the user shares a description of 2000 emoji and 2096 other characters (4096 code points)
+- **WHEN** the user shares a description of 500 emoji and 3596 other characters (4096 code points, 4596 UTF-16 units)
 - **THEN** the webhook receives the embed and the success notice is shown
 
 #### Scenario: Surrounding whitespace is ignored
@@ -63,8 +63,8 @@ The plugin SHALL measure lengths in Unicode code points, so a character outside 
 ### Requirement: Embeds with nothing to show are refused
 The plugin SHALL NOT send an embed that has none of: a title, a non-blank description, footer text, an author name, a field, a thumbnail or an image, because Discord rejects it without saying why. The failure notice SHALL start with "Failed to share embed to Discord." and say that there is nothing to share.
 
-#### Scenario: Note with only frontmatter
-- **WHEN** the user shares the content of a note that has only frontmatter and no default title, footer, author or fields are set
+#### Scenario: Note with frontmatter but no embed properties
+- **WHEN** the user shares the properties of a note whose frontmatter has no `ods-` properties, and no default title, description, footer, author or fields are set in the settings
 - **THEN** no request is sent and the notice says there is nothing to share
 
 #### Scenario: Only a color is set
@@ -72,8 +72,19 @@ The plugin SHALL NOT send an embed that has none of: a title, a non-blank descri
 - **THEN** no request is sent and the notice says there is nothing to share
 
 #### Scenario: A default title is enough
-- **WHEN** the note has only frontmatter but a default embed title is set in the settings
+- **WHEN** the note's frontmatter has no `ods-` properties but a default embed title is set in the settings
 - **THEN** the embed is sent
+
+### Requirement: Embed text is checked against Discord's size cap in bytes
+Discord also rejects an embed message above roughly 10 KB of UTF-8. The plugin SHALL refuse to send an embed whose text (title, description, field names and values, footer text and author name, trimmed) is larger than 10,000 UTF-8 bytes, with a violation reported in the same notice as the other limits: "Embed text is <n> bytes; Discord allows about 10,000. Emoji and many non-Latin scripts take 3 to 4 bytes per character." The threshold is deliberately below the measured edge, so no embed Discord accepts is refused.
+
+#### Scenario: Chinese text under the character limit but over the byte cap
+- **WHEN** the user shares a selection of 3500 Chinese characters (10,500 bytes)
+- **THEN** no request is sent and the notice contains "Embed text is 10,500 bytes"
+
+#### Scenario: Two-byte text up to the character limit
+- **WHEN** the user shares a selection of 4096 characters that are each two bytes in UTF-8
+- **THEN** the webhook receives the embed
 
 ### Requirement: Attachment size is not checked before sending
 The plugin SHALL NOT refuse an attachment on size before sending, because Discord's upload limit depends on the server. The decision SHALL come from the webhook's response.
