@@ -32,5 +32,5 @@
 ## 5. Docs and wrap-up
 
 - [x] 5.1 README: short section on Discord's embed limits and what the notices mean; remove or correct any "8MB" mention
-- [ ] 5.2 Run `npm test`, `npm run test:e2e` and `npm run check:webhooks`; confirm with the dev loop that an over-limit share shows the notice and reaches the capture server zero times
+- [x] 5.2 Run `npm test`, `npm run test:e2e` and `npm run check:webhooks`; confirm with the dev loop that an over-limit share shows the notice and reaches the capture server zero times (dev loop not run: the personal Obsidian was open and the guard would refuse; the limits e2e spec asserts the same on Obsidian 1.4.13 and 1.15, including the notice styling)
 - [ ] 5.3 Comment on issue #39 with the outcome and link #66 for splitting

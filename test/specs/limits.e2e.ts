@@ -147,6 +147,14 @@ describe("Embed limit validation", () => {
 		expect(notice).toContain("Title is 300 characters; Discord allows 256.");
 		expect(notice).toContain("Description is 5,000 characters; Discord allows 4,096.");
 		expect(harness.server.requests).toHaveLength(0);
+
+		// The lines are separated by newlines, which only show as separate lines when the notice preserves
+		// them: the plugin's rule gives pre-line on older Obsidian, and newer versions already use pre-wrap.
+		const whiteSpace = await browser.execute(() => {
+			const el = Array.from(document.querySelectorAll(".notice")).find((n) => n.textContent?.includes("Description is"));
+			return el ? getComputedStyle(el).whiteSpace : null;
+		});
+		expect(["pre-line", "pre-wrap"]).toContain(whiteSpace);
 	});
 
 	/** Makes `path` the active note. */
