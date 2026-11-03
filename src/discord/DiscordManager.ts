@@ -2,6 +2,7 @@ import DiscordSharePlugin from "src/main";
 import { FileSystemAdapter, MetadataCache, Notice, requestUrl, TAbstractFile, TFile, Vault } from "obsidian";
 import { DiscordWebhookAvatarURL, DiscordWebhookUsername } from "./constants";
 import DiscordHelper from "./DiscordHelper";
+import { WebhookError } from "./WebhookError";
 import { DiscordEmbedParams } from "./types";
 import { isValidUrl } from "src/util/url";
 import { buildMultipart } from "src/util/multipart";
@@ -137,7 +138,7 @@ export default class DiscordManager {
 			});
 
 			if (response.status < 200 || response.status >= 300) {
-				throw new Error(`HTTP ${response.status}: ${response.text}`);
+				throw new WebhookError(response.status, response.text);
 			}
 
 			new Notice(`Successfully shared ${fileName} to Discord!`);
@@ -260,7 +261,7 @@ export default class DiscordManager {
 				});
 
 				if (response.status < 200 || response.status >= 300) {
-					throw new Error(`HTTP ${response.status}: ${response.text}`);
+					throw new WebhookError(response.status, response.text);
 				}
 			} else {
 				// No attachment, send as JSON
@@ -282,7 +283,7 @@ export default class DiscordManager {
 				});
 
 				if (response.status < 200 || response.status >= 300) {
-					throw new Error(`HTTP ${response.status}: ${response.text}`);
+					throw new WebhookError(response.status, response.text);
 				}
 			}
 

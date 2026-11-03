@@ -1,0 +1,10 @@
+{
+  "_comment": "Real 400 responses recorded from a Discord webhook on 2026-11-02 (ods-1jz.4). Discord names only the index of a rejected embed for length, count, URL and color errors; only the 6000 total and the username get a message.",
+  "embedDescriptionTooLong": { "status": 400, "body": { "embeds": ["0"] } },
+  "embedTitleTooLong": { "status": 400, "body": { "embeds": ["0"] } },
+  "tooManyFields": { "status": 400, "body": { "embeds": ["0"] } },
+  "invalidUrl": { "status": 400, "body": { "embeds": ["0"] } },
+  "colorOutOfRange": { "status": 400, "body": { "embeds": ["0"] } },
+  "embedTotalOver6000": { "status": 400, "body": { "embeds": ["Embed size exceeds maximum size of 6000"] } },
+  "usernameTooLong": { "status": 400, "body": { "username": ["Must be between 1 and 80 in length."] } }
+}
