@@ -138,18 +138,25 @@ const clickSelectionMenuItem = async (): Promise<void> => {
 	await browser.waitUntil(async () => (await $$(".menu").length) === 0, {
 		timeoutMsg: "A previous context menu never closed",
 	});
-	const { x, y } = await selectionAnchor();
-	if (x < 0) throw new Error("There is no text selection to right-click");
-	await browser
-		.action("pointer")
-		.move({ x, y, origin: "viewport" })
-		.down({ button: 2 })
-		.up({ button: 2 })
-		.perform();
-
-	await browser.waitUntil(async () => (await $$(".menu .menu-item").length) > 0, {
-		timeoutMsg: "The editor context menu did not open",
-	});
+	// On macOS with Obsidian 1.15.0 the first right-click after switching to DOM menus can open nothing
+	// (the second one works), so retry the right-click a few times before giving up.
+	const MENU_ATTEMPTS = 3;
+	for (let attempt = 1; attempt <= MENU_ATTEMPTS; attempt++) {
+		const { x, y } = await selectionAnchor();
+		if (x < 0) throw new Error("There is no text selection to right-click");
+		await browser
+			.action("pointer")
+			.move({ x, y, origin: "viewport" })
+			.down({ button: 2 })
+			.up({ button: 2 })
+			.perform();
+		try {
+			await browser.waitUntil(async () => (await $$(".menu .menu-item").length) > 0, { timeout: 5000 });
+			break;
+		} catch {
+			if (attempt === MENU_ATTEMPTS) throw new Error("The editor context menu did not open");
+		}
+	}
 	let target: WebdriverIO.Element | undefined;
 	for (const item of await $$(".menu .menu-item")) {
 		if ((await item.getText()).trim() === SELECTION_MENU_TITLE) target = item;
