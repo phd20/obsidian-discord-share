@@ -3,11 +3,17 @@ import { FileSystemAdapter, MetadataCache, Notice, requestUrl, TAbstractFile, TF
 import { DiscordWebhookAvatarURL, DiscordWebhookUsername } from "./constants";
 import DiscordHelper from "./DiscordHelper";
 import { WebhookError } from "./WebhookError";
+import { validateEmbed } from "./validateEmbed";
+import { formatViolations } from "./formatViolations";
+import { describeDiscordError } from "./describeDiscordError";
 import { DiscordEmbedParams } from "./types";
 import { isValidUrl } from "src/util/url";
 import { buildMultipart } from "src/util/multipart";
 import { ISettingsOptions } from "src/Settings";
 import { WebhookURLModal } from "src/WebhookURLModal";
+
+// The violation notice lists what to fix, so it stays up longer than the default
+const VIOLATION_NOTICE_MS = 10000;
 
 // Discord embed field interface
 interface DiscordEmbedField {
@@ -144,9 +150,10 @@ export default class DiscordManager {
 			new Notice(`Successfully shared ${fileName} to Discord!`);
 		}
 		catch (error) {
-			if (error && (error.message.includes("Request entity too large") || error.message.includes("413"))) {
+			// The upload limit depends on the server's boost tier, so no size is quoted.
+			if (error instanceof WebhookError && error.status === 413) {
 				new Notice(
-					`Failed to share ${fileName} to Discord. Attachments must be smaller than 8MB.`
+					`Failed to share ${fileName} to Discord. The file is larger than this Discord server accepts.`
 				);
 			} else {
 				new Notice(
@@ -234,6 +241,16 @@ export default class DiscordManager {
 			);
 		}
 
+		// Discord reports most embed errors without saying which part is wrong, so
+		// check the limits here, before asking which webhook to use.
+		const violations = validateEmbed(embed);
+		if (violations.length > 0) {
+			console.log("Embed exceeds Discord's limits:", violations);
+			const notice = new Notice(formatViolations(violations), VIOLATION_NOTICE_MS);
+			notice.noticeEl.addClass("discord-share-violations");
+			return;
+		}
+
 		const url = await this.getWebhookURL(settings);
 
 		try {
@@ -291,8 +308,11 @@ export default class DiscordManager {
 		}
 		catch (error) {
 			console.log(error);
+			const detail = error instanceof WebhookError
+				? describeDiscordError(error.status, error.text)
+				: error.message;
 			new Notice(
-				`Failed to share embed to Discord. ${error.message}.`
+				`Failed to share embed to Discord. ${detail}${detail.endsWith(".") ? "" : "."}`
 			);
 		}
 	}

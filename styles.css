@@ -59,3 +59,7 @@
 .default-field-setting {
     margin: 0.25em 1em;
 }
+/* Over-limit notice: one violation per line */
+.discord-share-violations {
+    white-space: pre-line;
+}
