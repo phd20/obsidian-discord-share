@@ -1,0 +1,64 @@
+## ADDED Requirements
+
+### Requirement: Embeds are checked against Discord's limits before sending
+Before asking for a webhook or sending anything, the plugin SHALL check the embed it is about to share, after settings defaults have been merged, against these limits: title 256 characters, description 4096, footer text 2048, author name 256, at most 25 fields, each field name 256 and value 1024, and 6000 characters in total across title, description, field names and values, footer text and author name. When any limit is exceeded the plugin SHALL NOT send a request and SHALL NOT show the webhook picker. A value exactly at a limit SHALL be accepted. This applies to every embed share: note properties, note content, selection (command and context menu).
+
+#### Scenario: Description over the limit
+- **WHEN** the user shares a selection of 5000 characters
+- **THEN** no request reaches the webhook and a failure notice is shown
+
+#### Scenario: No webhook prompt for a share that cannot succeed
+- **WHEN** two webhooks are configured and the user shares a selection of 5000 characters
+- **THEN** the webhook picker does not appear and no request reaches either webhook
+
+#### Scenario: Description exactly at the limit
+- **WHEN** the user shares a selection of exactly 4096 characters
+- **THEN** the webhook receives the embed and the success notice is shown
+
+#### Scenario: Each part within its limit but the total over 6000
+- **WHEN** a note's properties give a 4000-character description and the settings define a default footer and fields that bring the embed's text to 6500 characters
+- **THEN** no request is sent and the notice reports the 6000-character total
+
+#### Scenario: Too many fields
+- **WHEN** a note's `ods-fields` lists 26 fields
+- **THEN** no request is sent and the notice reports the 25-field limit
+
+#### Scenario: Malformed fields do not crash the check
+- **WHEN** a note's `ods-fields` is not a list
+- **THEN** the check completes without an exception
+
+### Requirement: Violations are reported with the field, its size and the limit
+When the embed exceeds a limit, the plugin SHALL show one failure notice that starts with "Failed to share embed to Discord." and then names each exceeded limit with the field, its actual size and the allowed size. The notice SHALL list at most four violations and summarize any others as a count. Counts SHALL be shown with thousands separators.
+
+#### Scenario: One violation
+- **WHEN** the user shares a selection of 7412 characters
+- **THEN** the notice contains "Description is 7,412 characters; Discord allows 4,096."
+
+#### Scenario: Several violations
+- **WHEN** the embed has a 300-character title and a 5000-character description
+- **THEN** one notice lists both the title and the description violations
+
+#### Scenario: More than four violations
+- **WHEN** six limits are exceeded
+- **THEN** the notice lists four and states that two more were found
+
+### Requirement: Defaults count toward the limits
+The check SHALL use the embed as it will be sent, including values from the default embed settings, so that a default footer, author or fields contribute to the totals.
+
+#### Scenario: Default footer pushes a note over the total
+- **WHEN** the settings define a 2000-character default footer and the shared description is 4096 characters with a 256-character title
+- **THEN** the notice reports the 6000-character total
+
+### Requirement: Length is measured in Unicode code points
+The plugin SHALL measure lengths in Unicode code points, so a character outside the Basic Multilingual Plane (such as an emoji) counts once. A request Discord would accept SHALL NOT be refused because of how the plugin counts.
+
+#### Scenario: Emoji-heavy description at the limit
+- **WHEN** the user shares a selection of exactly 4096 emoji
+- **THEN** the webhook receives the embed and the success notice is shown
+
+### Requirement: Attachment size is not checked before sending
+The plugin SHALL NOT refuse an attachment on size before sending, because Discord's upload limit depends on the server. The decision SHALL come from the webhook's response.
+
+#### Scenario: Large attachment is sent
+- **WHEN** the user shares a 12 MB attachment
+- **THEN** the plugin sends the request and reports the outcome from the response
