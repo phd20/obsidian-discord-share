@@ -1,3 +1,8 @@
+## 2.7.0
+- Check embeds against Discord's limits before sending, and say what is too large, for example "Description is 7,412 characters; Discord allows 4,096." Nothing is sent and the webhook prompt is skipped. Checks title, description, footer, author, fields and the 6000-character total, counting characters the way Discord does (#39, #53, #54)
+- Refuse embeds Discord would reject without explanation: ones with no text, and ones over Discord's size cap of roughly 10 KB (Chinese text hits it at about 3,380 characters, emoji-heavy text at about 2,500)
+- Show what Discord said when it rejects a share, instead of raw JSON. The "file too large" notice for attachments no longer quotes a fixed 8MB, since the limit depends on the server
+
 ## 2.6.2
 - Fix sharing an attachment from a folder other than the root attachments folder (the wrong file could be shared, or "File not found" shown), notably on Windows. Thanks to Xymok3 (#62)
 - Send webhook requests with Obsidian's `requestUrl` instead of `fetch`, so they are no longer blocked by CORS

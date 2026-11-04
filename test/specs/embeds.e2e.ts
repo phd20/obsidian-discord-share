@@ -127,9 +127,14 @@ const clickSelectionMenuItem = async (): Promise<void> => {
 	// Switch to its DOM-drawn menus (same menu, same editor-menu event, same plugin handler).
 	// Obsidian 1.4.13 reads the preference once at startup into `Menu.useNativeMenu` (the config key
 	// only matters on the next launch), so set that flag too. Newer versions react to the config.
+	// They also recompute the flag from the config whenever it changes, and an unset value means
+	// "native" on macOS, so a late config reload can flip the flag back between this call and the
+	// right-click (seen intermittently on macOS CI with 1.15.0). Stop the app from recomputing it.
 	await browser.executeObsidian(({ app, obsidian }) => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(app.vault as any).setConfig("nativeMenus", false);
+		const anyApp = app as any;
+		if (typeof anyApp.updateUseNativeMenu === "function") anyApp.updateUseNativeMenu = () => {};
+		anyApp.vault.setConfig("nativeMenus", false);
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(obsidian.Menu as any).useNativeMenu = false;
 	});
@@ -142,6 +147,10 @@ const clickSelectionMenuItem = async (): Promise<void> => {
 	// (the second one works), so retry the right-click a few times before giving up.
 	const MENU_ATTEMPTS = 3;
 	for (let attempt = 1; attempt <= MENU_ATTEMPTS; attempt++) {
+		await browser.executeObsidian(({ obsidian }) => {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(obsidian.Menu as any).useNativeMenu = false;
+		});
 		const { x, y } = await selectionAnchor();
 		if (x < 0) throw new Error("There is no text selection to right-click");
 		await browser
