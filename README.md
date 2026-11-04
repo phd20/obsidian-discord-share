@@ -17,6 +17,7 @@ This plugin allows you to share your Obsidian Vault content to Discord via Disco
     - [Example Properties](#example-properties)
   - [Share Selection to Discord](#share-selection-to-discord)
   - [Share Current Note to Discord (Content)](#share-current-note-to-discord-content)
+  - [Discord's Limits](#discords-limits)
   - [Updated Settings](#updated-settings)
 
 ## Setup
@@ -103,6 +104,18 @@ This feature uses the title and main content body for the current note and share
 - Replaces wiki links (`[[Link]]` becomes `Link`)
 
 Future enhancements are planned for more sophisticated formatting (ex. images, markdown links, etc).
+
+## [Discord's Limits](#discords-limits)
+
+Discord rejects embeds that are too large, so the plugin checks an embed before sending it. It checks the title (256 characters), description (4096), footer text (2048), author name (256), the number of fields (25), each field name (256) and value (1024), and the total text across the whole embed (6000). Characters are counted the way Discord counts them, so an emoji counts once and leading and trailing spaces are ignored. Discord also limits the size of an embed in bytes, to roughly 10 KB, and the plugin refuses embeds with more than 10,000 bytes of text. Emoji and many non-Latin scripts take 3 to 4 bytes per character, so text in those scripts can hit this before the character limits (about 3,300 Chinese or Japanese characters, for example).
+
+If an embed is over a limit, the notice **Failed to share embed to Discord.** lists what is too large, for example `Description is 7,412 characters; Discord allows 4,096.` Nothing is sent, so you are not asked which webhook to use first.
+
+For a long note, share a selection (**Share Selection to Discord**) or shorten the note. Splitting long notes across several messages is tracked in [issue #66](https://github.com/phd20/obsidian-discord-share/issues/66).
+
+If Discord itself rejects an embed without saying why, the notice says so and suggests checking the title, description, fields, URLs and color.
+
+The plugin does not check attachment sizes before sending. The limit depends on the Discord server (its boost level), so a fixed cap here could block files that Discord would accept.
 
 ## [Updated Settings](#updated-settings)
 

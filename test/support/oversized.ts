@@ -1,7 +1,11 @@
 import * as fs from "fs";
 import * as path from "path";
 
-/** Discord rejects webhook attachments above this size; the plugin shows an 8MB notice on 413. */
+/**
+ * A size that counts as "big" for the tests. Discord's real upload limit depends on the server, so the
+ * plugin does not check size: it sends the file and reports the webhook's response (the capture server
+ * answers 413 or 400 as the test chooses). The value only has to make a large upload.
+ */
 export const DISCORD_ATTACHMENT_LIMIT_BYTES = 8 * 1024 * 1024;
 
 const PNG_SIGNATURE = [137, 80, 78, 71, 13, 10, 26, 10];

@@ -3,7 +3,8 @@
 // Settings are injected into the running plugin instance and never persisted (no saveData), so the
 // sandbox vault never gets a data.json. They live only in the plugin instance, so a plugin reload
 // (browser.reloadObsidian, disable/enable) resets them: inject again after any reload.
-import { browser } from "@wdio/globals";
+import { $$, browser } from "@wdio/globals";
+import type { TFile } from "obsidian";
 import { obsidianPage } from "wdio-obsidian-service";
 import { startCaptureServer } from "./captureServer";
 import type { CaptureServer, CaptureServerOptions } from "./captureServer";
@@ -150,6 +151,88 @@ export const useCaptureServer = (options: UseCaptureServerOptions = {}): Capture
 			return this.server.urlFor(DEFAULT_WEBHOOK_PATH);
 		},
 	};
+};
+
+// --- UI helpers: selection, the webhook picker (a suggest modal) and notices ---------------------
+
+/** Opens selection.md and selects the marked sentence in its editor. */
+export const selectSentence = async () => {
+	await browser.executeObsidian(async ({ app }) => {
+		const file = app.vault.getAbstractFileByPath("selection.md") as TFile;
+		await app.workspace.getLeaf(false).openFile(file);
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const editor = (app.workspace as any).activeEditor.editor;
+		const text: string = editor.getValue();
+		const start = text.indexOf("SELECTED_TEXT_START");
+		const end = text.indexOf("SELECTED_TEXT_END") + "SELECTED_TEXT_END".length;
+		editor.setSelection(editor.offsetToPos(start), editor.offsetToPos(end));
+	});
+	await browser.waitUntil(
+		async () =>
+			browser.executeObsidian(
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				({ app }) => (app.workspace as any).activeEditor?.editor?.somethingSelected() === true,
+			),
+		{ timeoutMsg: "selection was not applied in the editor" },
+	);
+};
+
+/** Texts of the elements matching `selector`, read in one round trip. */
+export const textsOf = async (selector: string): Promise<string[]> =>
+	browser.execute(
+		(sel) => Array.from(document.querySelectorAll(sel)).map((el) => (el.textContent || "").trim()),
+		selector,
+	);
+
+/** Waits for a suggest modal and returns the text of its suggestions. */
+export const suggestionTexts = async (): Promise<string[]> => {
+	await browser.waitUntil(async () => (await textsOf(".modal-container .suggestion-item")).length > 0, {
+		timeoutMsg: "no suggest modal with suggestions appeared",
+	});
+	return textsOf(".modal-container .suggestion-item");
+};
+
+/** Clicks the suggestion whose text is exactly `text`. */
+export const chooseSuggestion = async (text: string) => {
+	const index = (await suggestionTexts()).indexOf(text);
+	if (index === -1) throw new Error(`suggestion "${text}" not found`);
+	const items = await $$(".modal-container .suggestion-item");
+	// Under mobile emulation the prompt slides in as a drawer, and a click on a moving item is lost
+	// or intercepted, so wait until the item holds still before clicking.
+	let lastTop = Number.NaN;
+	await browser.waitUntil(async () => {
+		const { y } = await items[index].getLocation();
+		const settled = y === lastTop;
+		lastTop = y;
+		return settled;
+	}, { interval: 150, timeoutMsg: `suggestion "${text}" never stopped moving` });
+	await items[index].click();
+};
+
+export const noticeTexts = async (): Promise<string[]> => textsOf(".notice-container .notice");
+
+/** Waits until a notice satisfying `predicate` is visible and returns its text. */
+export const waitForNotice = async (predicate: (text: string) => boolean): Promise<string> => {
+	let found = "";
+	await browser.waitUntil(
+		async () => {
+			const match = (await noticeTexts()).find(predicate);
+			if (match) found = match;
+			return Boolean(match);
+		},
+		{ timeoutMsg: "expected notice did not appear" },
+	);
+	return found;
+};
+
+/** Whether any modal (such as the webhook picker) is open. */
+export const modalOpen = async (): Promise<boolean> => (await textsOf(".modal-container")).length > 0;
+
+/** Removes every notice from the screen, so a test only sees notices it caused itself. */
+export const clearNotices = async (): Promise<void> => {
+	await browser.execute(() => {
+		document.querySelectorAll(".notice").forEach((notice) => notice.remove());
+	});
 };
 
 export { obsidianPage };
